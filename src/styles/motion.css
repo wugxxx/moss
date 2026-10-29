@@ -1,0 +1,280 @@
+/* ============================================================
+   MOTION: one-shot flow animations (gated to the render they belong to)
+   ============================================================ */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes slideInR {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes growX {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes popCheck {
+  0% {
+    transform: scale(0.55);
+  }
+  55% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes strike {
+  to {
+    background-size: 100% 1.5px;
+  }
+}
+@keyframes doneWash {
+  from {
+    background: var(--green-soft);
+  }
+  to {
+    background: transparent;
+  }
+}
+@keyframes doneRing {
+  from {
+    box-shadow:
+      0 0 0 2px var(--green),
+      var(--shadow-card);
+  }
+  to {
+    box-shadow: var(--shadow-card);
+  }
+}
+@keyframes land {
+  0% {
+    transform: scale(1.04) rotate(-1.2deg);
+    box-shadow: var(--shadow-drag);
+  }
+  100% {
+    transform: none;
+    box-shadow: var(--shadow-card);
+  }
+}
+@keyframes addWash {
+  from {
+    background: var(--accent-soft);
+  }
+  to {
+    background: transparent;
+  }
+}
+@keyframes addRing {
+  from {
+    box-shadow:
+      0 0 0 2px var(--accent-line),
+      var(--shadow-card);
+  }
+  to {
+    box-shadow: var(--shadow-card);
+  }
+}
+/* route change: content rises in, lightly staggered */
+.fx-route > .page > *,
+.fx-route > .fullstate {
+  animation: riseIn 0.36s var(--ease) both;
+}
+.fx-route > .page > *:nth-child(2) {
+  animation-delay: 0.035s;
+}
+.fx-route > .page > *:nth-child(3) {
+  animation-delay: 0.07s;
+}
+.fx-route > .page > *:nth-child(n + 4) {
+  animation-delay: 0.1s;
+}
+.fx-route .grid2 > * > *:nth-child(2),
+.fx-route .grid2 > *:nth-child(2) > *:first-child {
+  animation: riseIn 0.4s 0.09s var(--ease) both;
+}
+.fx-route .prog > i {
+  animation: growX 0.8s 0.12s var(--ease) both;
+}
+.fx-route .stackbar i {
+  transform-origin: left;
+  animation: growX 0.8s 0.12s var(--ease) both;
+}
+.fx-route .bar {
+  animation: riseIn 0.4s var(--ease) both;
+}
+.pbody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pbody.fx-tab > * {
+  animation: riseIn 0.26s var(--ease) both;
+}
+.pbody.fx-tab .kcard {
+  animation: riseIn 0.32s var(--ease) both;
+}
+.pbody.fx-tab .bcol:nth-child(2) .kcard {
+  animation-delay: 0.03s;
+}
+.pbody.fx-tab .bcol:nth-child(3) .kcard {
+  animation-delay: 0.06s;
+}
+.pbody.fx-tab .bcol:nth-child(n + 4) .kcard {
+  animation-delay: 0.09s;
+}
+/* task completed */
+.trow.fx-done,
+.mini.fx-done {
+  animation: doneWash 1s var(--ease) both;
+}
+.kcard.fx-done {
+  animation: doneRing 1s var(--ease) both;
+}
+.fx-done .check,
+.fx-done .done-ic {
+  animation: popCheck 0.42s var(--spring) both;
+}
+.fx-done .tt,
+.fx-done .title {
+  text-decoration: none !important;
+  background: linear-gradient(currentColor, currentColor) 0 58%/0 1.5px no-repeat;
+  animation: strike 0.38s 0.1s var(--ease) forwards;
+}
+/* dropped, created */
+.kcard.fx-moved {
+  animation: land 0.5s var(--spring) both;
+}
+.cev.fx-moved,
+.wcard.fx-moved {
+  animation: popCheck 0.4s var(--spring) both;
+}
+.trow.fx-added,
+.mini.fx-added {
+  animation:
+    riseIn 0.3s var(--ease) both,
+    addWash 1.4s var(--ease) both;
+}
+.kcard.fx-added {
+  animation:
+    riseIn 0.3s var(--ease) both,
+    addRing 1.4s var(--ease) both;
+}
+.subt.fx-added {
+  animation: riseIn 0.28s var(--ease) both;
+}
+.onb.fx-step .ready-row {
+  animation: riseIn 0.4s var(--ease) both;
+}
+.onb.fx-step .ready-row:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.onb.fx-step .ready-row:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.onb.fx-step .ready-row .ok {
+  animation: popCheck 0.42s var(--spring) both;
+}
+.onb.fx-step .ready-row:nth-child(1) .ok {
+  animation-delay: 0.18s;
+}
+.onb.fx-step .ready-row:nth-child(2) .ok {
+  animation-delay: 0.3s;
+}
+.onb.fx-step .ready-row:nth-child(3) .ok {
+  animation-delay: 0.42s;
+}
+.onb.fx-step .ready-badge {
+  animation: popCheck 0.5s 0.05s var(--spring) both;
+}
+/* tactile micro-feedback */
+.check:active {
+  transform: scale(0.88);
+}
+.check {
+  transition:
+    background var(--dur),
+    border-color var(--dur),
+    transform 0.12s var(--ease);
+}
+.toggle::after {
+  transition: transform 0.28s var(--spring);
+}
+.pcard {
+  transition:
+    border-color var(--dur),
+    box-shadow 0.2s var(--ease),
+    transform 0.2s var(--ease);
+}
+.pcard:hover {
+  transform: translateY(-2px);
+}
+.kcard {
+  transition:
+    box-shadow var(--dur),
+    transform 0.18s var(--ease);
+}
+.kcard:hover {
+  transform: translateY(-1px);
+}
+.stat .v {
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-route > .page > *,
+  .fx-route > .fullstate,
+  .fx-route .grid2 > * > *,
+  .fx-route .bar,
+  .pbody.fx-tab > *,
+  .pbody.fx-tab .kcard,
+  .kcard.fx-moved,
+  .cev.fx-moved,
+  .wcard.fx-moved,
+  .fx-done .check,
+  .drawer.enter .drawer-b > * {
+    animation: fadeOnly 0.12s both !important;
+  }
+  .fx-route .prog > i,
+  .fx-route .stackbar i {
+    animation: none !important;
+  }
+  .fx-done .tt,
+  .fx-done .title {
+    animation: none;
+    background: none;
+    text-decoration: line-through !important;
+  }
+  .pcard:hover,
+  .kcard:hover,
+  .check:active {
+    transform: none;
+  }
+}
+:root[data-motion='reduce'] .fx-route > .page > *,
+:root[data-motion='reduce'] .pbody.fx-tab > *,
+:root[data-motion='reduce'] .drawer.enter .drawer-b > *,
+:root[data-motion='reduce'] .kcard.fx-moved {
+  animation: fadeOnly 0.12s both !important;
+}
+:root[data-motion='reduce'] .fx-route .prog > i,
+:root[data-motion='reduce'] .fx-route .stackbar i {
+  animation: none !important;
+}
+:root[data-motion='reduce'] .pcard:hover,
+:root[data-motion='reduce'] .kcard:hover {
+  transform: none;
+}

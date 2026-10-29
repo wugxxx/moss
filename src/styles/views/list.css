@@ -1,0 +1,271 @@
+/* ============================================================
+   TASK ROWS (list)
+   ============================================================ */
+/* no top border: the toolbar above already draws that line (it doubled up before) */
+.tlist {
+  border-top: 0;
+}
+.thead,
+.trow {
+  display: grid;
+  grid-template-columns: var(--cols);
+  align-items: center;
+  min-height: var(--row-h);
+  gap: 0;
+}
+.thead {
+  min-height: 32px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 2;
+}
+.thead > div {
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.trow {
+  border-bottom: 1px solid var(--divider);
+  position: relative;
+  transition: background var(--dur);
+}
+.trow:hover {
+  background: var(--surface-2);
+}
+.trow.sel {
+  background: var(--accent-soft);
+}
+.trow.drop-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.trow.drop-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.trow.dragging {
+  opacity: 0.4;
+}
+.trow > div {
+  padding: 0 8px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.trow .handle {
+  opacity: 0;
+  cursor: grab;
+  color: var(--text-4);
+  width: 16px;
+  justify-content: center;
+  padding: 0;
+}
+.trow:hover .handle {
+  opacity: 1;
+}
+.trow .ttl {
+  font-size: var(--fs);
+  cursor: pointer;
+  gap: 8px;
+}
+.trow .ttl .tt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trow .ttl:hover .tt {
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+}
+.trow.done .tt {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-3);
+}
+.trow .key {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.trow .meta-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+}
+.grp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px 0 22px;
+  margin-top: 10px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+.grp .cnt {
+  color: var(--text-3);
+  font-weight: 500;
+}
+.grp .ibtn {
+  opacity: 0.6;
+}
+.grp:hover .ibtn {
+  opacity: 1;
+}
+.subrows {
+  background: var(--sunken);
+}
+.subrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding-left: 64px;
+  border-bottom: 1px solid var(--divider);
+  font-size: var(--fs-sm);
+}
+.subrow.done span {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+.addrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px 0 26px;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  width: 100%;
+  text-align: left;
+  border-bottom: 1px solid var(--divider);
+}
+.addrow:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.inline-in {
+  border: 0;
+  background: transparent;
+  height: 100%;
+  width: 100%;
+  font-size: var(--fs);
+  padding: 0;
+  outline: none;
+}
+.bulkbar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 14px;
+  border-radius: var(--r-lg);
+  background: var(--text);
+  color: var(--text-inv);
+  box-shadow: var(--shadow-pop);
+  z-index: 40;
+  font-size: var(--fs-sm);
+}
+.bulkbar.enter {
+  animation: popUp 0.28s var(--spring);
+}
+.bulkbar .btn {
+  color: var(--text-inv);
+  opacity: 0.85;
+}
+.bulkbar .btn:hover {
+  background: color-mix(in srgb, var(--text-inv) 14%, transparent);
+  opacity: 1;
+}
+.bulkbar .sep {
+  width: 1px;
+  height: 18px;
+  background: color-mix(in srgb, var(--text-inv) 20%, transparent);
+  margin: 0 4px;
+}
+@keyframes popUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* compact task row (dashboard) */
+.mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-top: 1px solid var(--divider);
+  cursor: pointer;
+  transition: background var(--dur);
+}
+.mini:hover {
+  background: var(--surface-2);
+}
+.mini .tt {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mini.done .tt {
+  text-decoration: line-through;
+  color: var(--text-3);
+}
+.mini .pj {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  max-width: 140px;
+}
+.pdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--c);
+  flex-shrink: 0;
+}
+.due {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.due.over {
+  color: var(--red);
+}
+.due.soon {
+  color: var(--amber);
+}
+/* List rows start with an 18px drag handle + 30px checkbox column; pulling the wrapper left by
+   the handle+cell inset puts the checkbox (and group chevrons) exactly on the shared gutter. */
+.list-wrap {
+  padding: 0 var(--gutter) 90px calc(var(--gutter) - 26px);
+}

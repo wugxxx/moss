@@ -1,0 +1,81 @@
+{
+  "name": "moss",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Moss: a calm, structured project management workspace.",
+  "author": "Moss",
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "dev:desktop": "vite --mode desktop",
+    "build": "vite build",
+    "build:desktop": "vite build --mode desktop",
+    "pack": "npm run build:desktop && electron-builder --dir",
+    "dist": "npm run build:desktop && electron-builder",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "typecheck": "tsc -p packages/contracts/tsconfig.json --noEmit && tsc -p packages/domain/tsconfig.json --noEmit && tsc -p packages/application/tsconfig.json --noEmit && tsc -p packages/sync-core/tsconfig.json --noEmit && tsc -p packages/client/tsconfig.json --noEmit && tsc -p packages/local-db/tsconfig.json --noEmit && tsc -p apps/desktop/tsconfig.json --noEmit",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "build": {
+    "appId": "com.moss.workspace",
+    "productName": "Moss",
+    "icon": "build/icon.png",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "category": "Office",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^24.19.2",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0",
+    "eslint": "^9.39.5",
+    "globals": "^15.15.0",
+    "lucide": "^0.460.0",
+    "prettier": "^3.9.9",
+    "typescript": "^5.7.2",
+    "vite": "^6.4.4",
+    "vite-plugin-electron": "^1.1.2",
+    "vitest": "^3.2.4"
+  }
+}

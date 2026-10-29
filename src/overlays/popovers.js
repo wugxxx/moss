@@ -1,0 +1,341 @@
+/* ---------------- POPOVERS ---------------- */
+import { $, TODAY, addD, dOff, diffD, esc, fmtDate, iso, monthLong, parse, relDate, weekdayShort } from '../core/utils.js';
+import { ic } from '../core/icons.js';
+import { LABELS, PRIOS, PSTAT, STATUSES } from '../core/constants.js';
+import { D, S, allTasks, me, pColor, proj, task, visibleProjects } from '../core/store.js';
+import { av, prIcon, stIcon } from '../ui/helpers.js';
+import { focusKey, render } from '../shell/render.js';
+import { FIELDS, viewOf } from '../shell/view-engine.js';
+import { TCOLS, colName } from '../views/table.js';
+import { startOfWeek } from '../views/calendar.js';
+import { ctxMenu } from './context-menu.js';
+import { t as tr } from '../i18n/index.js';
+
+export function openPop(el, extra = {}) {
+  const r = el.getBoundingClientRect();
+  const d = el.dataset;
+  S.ui.popOpener = focusKey(el);
+  S.ui.pop = {
+    type: d.pop,
+    id: d.id,
+    key: d.key,
+    i: d.i != null ? +d.i : undefined,
+    field: d.field,
+    date: d.date,
+    x: r.left,
+    y: r.bottom + 4,
+    top: r.top,
+    w: r.width,
+    q: '',
+    ...extra,
+  };
+  if (d.pop === 'date') {
+    const tk = task(d.id);
+    const cur = S.ui.pop.id === '__form' ? S.ui.form[d.field] : d.field === 'subdue' ? tk?.subtasks[+d.i]?.due : tk?.[d.field];
+    S.ui.pop.m = iso(cur ? parse(cur) : TODAY);
+  }
+  render();
+  setTimeout(() => {
+    const q = $('.pop input[data-pop-q]');
+    if (q) {
+      q.focus();
+      return;
+    }
+    const first = $('.pop.floating .mi[aria-checked="true"]') || $('.pop.floating .mi, .pop.floating button, .pop.floating input');
+    first?.focus({ preventScroll: true });
+  }, 10);
+}
+export function placePop() {
+  const el = $('.pop.floating');
+  const p = S.ui.pop;
+  if (!el || !p) return;
+  const w = el.offsetWidth,
+    h = el.offsetHeight;
+  let x = p.x,
+    y = p.y;
+  if (x + w > innerWidth - 8) x = Math.max(8, (p.right ? p.x : p.x + (p.w || 0)) - w);
+  if (y + h > innerHeight - 8) y = Math.max(8, (p.top != null ? p.top - 4 : p.y) - h);
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+}
+export function closePop() {
+  if (S.ui.pop) {
+    S.ui.pop = null;
+    render();
+  }
+}
+export function tgt(p) {
+  return p.id === '__form' ? S.ui.form : task(p.id);
+}
+export function popList(items, opt = {}) {
+  const q = (S.ui.pop.q || '').toLowerCase();
+  const list = items.filter(it => !q || it.name.toLowerCase().includes(q));
+  return `${opt.search ? `<div class="pin"><input data-pop-q data-in="popQ" id="pop-q" placeholder="${opt.search}" value="${esc(S.ui.pop.q || '')}" aria-label="${opt.search}"></div>` : ''}
+    ${list.map(it => `<button class="mi" data-a="${it.act || 'popPick'}" data-v="${esc(it.id)}" role="menuitemradio" aria-checked="${!!it.on}">${it.html || ''}<span class="trunc">${esc(it.name)}</span>${it.kbd ? `<span class="r"><kbd>${it.kbd}</kbd></span>` : ''}${it.on ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`).join('') || `<div class="mi faint" style="cursor:default">${tr('popovers.noMatches')}</div>`}`;
+}
+export function miniCal(p, val) {
+  const m = parse(p.m);
+  const first = new Date(m.getFullYear(), m.getMonth(), 1);
+  const start = startOfWeek(first);
+  const cells = Array.from({ length: 42 }, (_, i) => addD(start, i));
+  const wdn = Array.from({ length: 7 }, (_, i) => weekdayShort((i + S.prefs.weekStart) % 7).slice(0, 2));
+  return `<div style="padding:6px 6px 2px;width:252px">
+    <div class="row" style="margin-bottom:6px"><b style="font-weight:600;font-size:13px;padding-left:4px">${monthLong(m.getMonth())} ${m.getFullYear()}</b><span class="sp"></span><button class="ibtn ibtn-xs" data-a="popMonth" data-d="-1" aria-label="${tr('popovers.previousMonth')}">${ic('chevron-left', 14)}</button><button class="ibtn ibtn-xs" data-a="popMonth" data-d="1" aria-label="${tr('popovers.nextMonth')}">${ic('chevron-right', 14)}</button></div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px">${wdn.map(d => `<span class="faint" style="padding:3px 0">${d}</span>`).join('')}
+    ${cells
+      .map(d => {
+        const ds = iso(d);
+        const on = ds === val;
+        const today = diffD(d, TODAY) === 0;
+        return `<button data-a="popPick" data-v="${ds}" style="height:30px;border-radius:6px;font-size:12px;${on ? 'background:var(--accent);color:var(--on-accent);font-weight:600' : today ? 'color:var(--accent);font-weight:600;box-shadow:inset 0 0 0 1px var(--accent-line)' : d.getMonth() !== m.getMonth() ? 'color:var(--text-3)' : ''}" onmouseover="if(!this.style.background)this.style.background='var(--surface-2)'" onmouseout="if(this.style.background==='var(--surface-2)')this.style.background=''" aria-label="${fmtDate(ds, true)}" class="num">${d.getDate()}</button>`;
+      })
+      .join('')}</div></div>`;
+}
+export function popHtml(p) {
+  let inner = '',
+    cls = '',
+    style = '';
+  const t = ['status', 'priority', 'labels', 'date', 'project', 'deps', 'recur', 'estimate'].includes(p.type) ? tgt(p) : null;
+  switch (p.type) {
+    case 'create':
+      inner = `<div class="mh">${tr('popovers.create')}</div><button class="mi" data-a="newTask">${ic('circle-check', 15)}${tr('common.task')}<span class="r"><kbd>N</kbd></span></button><button class="mi" data-a="newProject">${ic('folder-plus', 15)}${tr('common.project')}<span class="r"><kbd>P</kbd></span></button>`;
+      style = 'width:220px';
+      break;
+    case 'status':
+      inner = popList(STATUSES.map((s, i) => ({ id: s.id, name: s.name, html: stIcon(s.id), on: t?.status === s.id, kbd: i + 1 })));
+      break;
+    case 'priority':
+      inner = popList(PRIOS.map(x => ({ id: x.id, name: x.name, html: prIcon(x.id), on: t?.priority === x.id })));
+      break;
+    case 'labels':
+      inner = popList(
+        LABELS.map(l => ({
+          id: l.id,
+          name: l.name,
+          html: `<span class="pdot" style="--c:${l.c}"></span>`,
+          on: t?.labels.includes(l.id),
+          act: 'popToggleLabel',
+        })),
+        { search: tr('popovers.searchLabels') },
+      );
+      break;
+    case 'project':
+      inner = popList(
+        visibleProjects()
+          .filter(q => q.status !== 'complete')
+          .map(q => ({ id: q.id, name: q.name, html: `<span class="pdot" style="--c:${pColor(q)}"></span>`, on: t?.project === q.id })),
+        { search: tr('popovers.moveProject') },
+      );
+      break;
+    case 'recur':
+      inner = popList(
+        [
+          ['Does not repeat', tr('popovers.doesNotRepeat')],
+          ['Daily', tr('popovers.daily')],
+          ['Weekly', tr('popovers.weekly')],
+          ['Every 2 weeks', tr('popovers.everyTwoWeeks')],
+          ['Monthly', tr('popovers.monthly')],
+        ].map(([id, name]) => ({
+          id,
+          name,
+          html: ic('repeat', 14),
+          on: (t?.recur || 'Does not repeat') === id,
+        })),
+      );
+      break;
+    case 'estimate':
+      inner = popList(
+        ['30m', '1h', '2h', '4h', '1d', '2d', '3d', '5d', '8d']
+          .map(x => ({ id: x, name: x, html: ic('timer', 14), on: t?.estimate === x }))
+          .concat([{ id: '', name: tr('popovers.clearEstimate'), html: ic('x', 14) }]),
+      );
+      break;
+    case 'deps': {
+      const cands = D().tasks.filter(x => x.project === t.project && x.id !== t.id && !x.archived);
+      inner = popList(
+        cands.map(x => ({ id: x.id, name: `${x.key}  ${x.title}`, html: stIcon(x.status), on: t.deps.includes(x.id), act: 'popToggleDep' })),
+        { search: tr('popovers.blockedBy') },
+      );
+      break;
+    }
+    case 'date': {
+      const val = p.field === 'subdue' ? t?.subtasks[p.i]?.due : t?.[p.field];
+      const q = [
+        [tr('time.today'), 0],
+        [tr('time.tomorrow'), 1],
+        [tr('time.nextWeek'), 7 - ((TODAY.getDay() + 6) % 7)],
+        [tr('time.inTwoWeeks'), 14],
+      ];
+      inner = `<div class="row" style="gap:4px;padding:4px;flex-wrap:wrap">${q.map(([n, d]) => `<button class="badge" data-a="popPick" data-v="${dOff(d)}" style="cursor:pointer">${n}</button>`).join('')}${val ? `<button class="badge" data-a="popPick" data-v="" style="cursor:pointer;color:var(--red)">${tr('popovers.clear')}</button>` : ''}</div><div class="msep"></div>${miniCal(p, val)}`;
+      style = 'min-width:0';
+      break;
+    }
+    case 'pstatus': {
+      const pr = proj(p.id);
+      inner = popList(
+        Object.entries(PSTAT).map(([k, v]) => ({
+          id: k,
+          name: v.name,
+          html: `<span class="pdot" style="--c:${v.c};border-radius:50%"></span>`,
+          on: pr.status === k,
+        })),
+      );
+      break;
+    }
+    case 'user':
+      inner = `<div class="row" style="padding:8px 8px 10px;gap:10px">${av(D().me, 'lg', false)}<div style="min-width:0"><div style="font-weight:600">${esc(me()?.name || '')}</div><div class="faint trunc" style="font-size:12px">${esc(me()?.title || tr('popovers.localWorkspace'))}</div></div></div><div class="msep"></div>
+      <button class="mi" data-a="go" data-r="settings" data-sec="profile">${ic('user', 15)}${tr('nav.localProfile')}</button><button class="mi" data-a="go" data-r="settings" data-sec="appearance">${ic('settings', 15)}${tr('nav.settings')}</button>
+      <div class="msep"></div><div class="mh">${tr('popovers.theme')}</div><div style="padding:2px 6px 6px"><div class="seg" style="width:100%">${[
+        ['light', 'sun', tr('settings.light')],
+        ['dark', 'moon', tr('settings.dark')],
+        ['system', 'monitor', tr('settings.system')],
+      ]
+        .map(
+          ([k, i, n]) =>
+            `<button class="${S.prefs.theme === k ? 'on' : ''}" style="flex:1;justify-content:center" data-a="setTheme" data-v="${k}">${ic(i, 13)}${n}</button>`,
+        )
+        .join('')}</div></div>
+      `;
+      style = 'width:260px';
+      break;
+    case 'sort': {
+      const v = viewOf(p.key);
+      inner =
+        `<div class="mh">${tr('popovers.sortBy')}</div>` +
+        [
+          ['manual', tr('view.manual')],
+          ['priority', tr('common.priority')],
+          ['due', tr('common.dueDate')],
+          ['start', tr('common.startDate')],
+          ['title', tr('common.title')],
+          ['status', tr('common.status')],
+          ['created', tr('common.created')],
+          ['updated', tr('common.lastUpdated')],
+        ]
+          .map(
+            ([k, n]) =>
+              `<button class="mi" data-a="setSort" data-key="${p.key}" data-v="${k}">${n}${v.sort.f === k ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
+          )
+          .join('') +
+        `<div class="msep"></div><div style="padding:4px 6px"><div class="seg" style="width:100%"><button class="${v.sort.dir > 0 ? 'on' : ''}" style="flex:1;justify-content:center" data-a="setSortDir" data-key="${p.key}" data-v="1">${ic('arrow-up', 12)}${tr('view.ascending')}</button><button class="${v.sort.dir < 0 ? 'on' : ''}" style="flex:1;justify-content:center" data-a="setSortDir" data-key="${p.key}" data-v="-1">${ic('arrow-down', 12)}${tr('view.descending')}</button></div></div>`;
+      style = 'width:240px';
+      break;
+    }
+    case 'group': {
+      const v = viewOf(p.key);
+      inner =
+        `<div class="mh">${tr('view.groupBy')}</div>` +
+        [
+          ['status', tr('common.status'), 'circle-dot'],
+          ['priority', tr('common.priority'), 'signal-high'],
+          ['project', tr('common.project'), 'folder'],
+          ['due', tr('common.dueDate'), 'calendar'],
+          ['none', tr('view.noGrouping'), 'minus'],
+        ]
+          .map(
+            ([k, n, i]) =>
+              `<button class="mi" data-a="setGroup" data-key="${p.key}" data-v="${k}">${ic(i, 15)}${n}${v.group === k ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
+          )
+          .join('');
+      break;
+    }
+    case 'cols': {
+      const v = viewOf(p.key);
+      inner =
+        `<div class="mh">${tr('view.visibleColumns')}</div>` +
+        TCOLS.filter(c => c[0] !== 'title')
+          .map(
+            c =>
+              `<label class="mi" style="cursor:pointer"><input type="checkbox" class="check" data-a="toggleCol2" data-key="${p.key}" data-v="${c[0]}" ${v.hidden.includes(c[0]) ? '' : 'checked'}>${colName(c[0])}</label>`,
+          )
+          .join('') +
+        `<div class="msep"></div><button class="mi" data-a="resetCols" data-key="${p.key}">${ic('rotate-ccw', 14)}${tr('view.resetWidths')}</button>`;
+      break;
+    }
+    case 'filter':
+      inner = filterBuilder(p);
+      cls = 'fbuild';
+      style = 'max-width:560px';
+      break;
+    case 'fvals': {
+      const v = viewOf(p.key);
+      const f = v.filters[p.i];
+      if (!f) break;
+      inner =
+        `<div class="mh">${FIELDS[f.f].name} ${f.op === 'not' ? tr('view.isNot') : tr('view.is')}</div>` +
+        FIELDS[f.f]
+          .opts()
+          .map(
+            o =>
+              `<label class="mi" style="cursor:pointer"><input type="checkbox" class="check" data-a="fToggleVal" data-key="${p.key}" data-i="${p.i}" data-v="${o.id}" ${f.v.includes(o.id) ? 'checked' : ''}>${o.html || ''}${esc(o.name)}</label>`,
+          )
+          .join('');
+      break;
+    }
+    case 'daylist': {
+      const ds = p.date;
+      const evs = D().events.filter(e => e.date === ds);
+      const ts = allTasks().filter(x => x.due === ds);
+      inner =
+        `<div class="mh">${fmtDate(ds, true)}</div>` +
+        evs
+          .map(
+            e =>
+              `<button class="mi" data-a="go" data-r="project" data-id="${e.project}" data-tab="calendar">${ic('clock', 14)}${esc(e.title)}<span class="r">${e.time}</span></button>`,
+          )
+          .join('') +
+        ts
+          .map(
+            x =>
+              `<button class="mi" data-a="openTask" data-id="${x.id}">${stIcon(x.status)}<span class="trunc">${esc(x.title)}</span><span class="r">${relDate(x.due)}</span></button>`,
+          )
+          .join('');
+      style = 'width:280px';
+      break;
+    }
+    case 'event': {
+      const e = D().events.find(x => x.id === p.id);
+      if (!e) break;
+      const pr = proj(e.project);
+      if (!pr) break;
+      inner = `<div style="padding:10px 10px 6px"><div class="row" style="gap:8px;margin-bottom:6px"><span class="pdot" style="--c:${pColor(pr)};border-radius:50%"></span><b style="font-size:14px;font-weight:600">${esc(e.title)}</b></div><div class="muted" style="font-size:12.5px;display:flex;flex-direction:column;gap:4px"><span class="row" style="gap:6px">${ic('calendar', 13)}${fmtDate(e.date, true)} · ${esc(e.time)}</span><span class="row" style="gap:6px">${ic('folder', 13)}${esc(pr.name)}</span>${e.notes ? `<span style="white-space:pre-wrap;line-height:1.45">${esc(e.notes)}</span>` : ''}</div></div><div class="msep"></div><button class="mi" data-a="editEvent" data-id="${esc(e.id)}">${ic('pencil', 14)}${tr('popovers.editEvent')}</button><button class="mi danger" data-a="delEvent" data-id="${esc(e.id)}">${ic('trash-2', 14)}${tr('popovers.deleteEvent')}</button><div class="msep"></div><button class="mi" data-a="go" data-r="project" data-id="${esc(pr.id)}" data-tab="overview">${ic('arrow-up-right', 14)}${tr('popovers.openProject')}</button>`;
+      style = 'width:270px';
+      break;
+    }
+    case 'ctx':
+      inner = ctxMenu(p);
+      break;
+    case 'bulk-status':
+      inner = STATUSES.map(s => `<button class="mi" data-a="bulkSet" data-f="status" data-v="${s.id}">${stIcon(s.id)}${s.name}</button>`).join('');
+      break;
+    case 'bulk-priority':
+      inner = PRIOS.map(s => `<button class="mi" data-a="bulkSet" data-f="priority" data-v="${s.id}">${prIcon(s.id)}${s.name}</button>`).join('');
+      break;
+  }
+  if (!inner) return '';
+  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="menu" style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root>${inner}</div>`;
+}
+export function filterBuilder(p) {
+  const v = viewOf(p.key);
+  const rows = v.filters
+    .map((f, i) => {
+      const F = FIELDS[f.f];
+      const opts = F.opts();
+      const names = f.v.map(id => opts.find(o => o.id === id)?.name || id);
+      const open = p.edit === i;
+      return `<div class="frow"><span class="conj">${i ? tr('view.and') : tr('view.where')}</span>
+      <select class="select" data-in="fField" data-key="${p.key}" data-i="${i}" aria-label="${tr('view.field')}">${Object.entries(FIELDS)
+        .map(([k, x]) => `<option value="${k}" ${f.f === k ? 'selected' : ''}>${x.name}</option>`)
+        .join('')}</select>
+      <select class="select" data-in="fOp" data-key="${p.key}" data-i="${i}" aria-label="${tr('view.operator')}"><option value="is" ${f.op === 'is' ? 'selected' : ''}>${tr('view.is')}</option><option value="not" ${f.op === 'not' ? 'selected' : ''}>${tr('view.isNot')}</option></select>
+      <button class="valbtn" data-a="fEdit" data-i="${i}" aria-expanded="${open}"><span class="trunc grow">${names.length ? esc(names.join(', ')) : `<span class="faint">${tr('popovers.select')}</span>`}</span>${ic('chevron-down', 12)}</button>
+      <button class="ibtn ibtn-xs" data-a="rmFilter" data-key="${p.key}" data-i="${i}" aria-label="${tr('view.removeFilter')}">${ic('trash-2', 13)}</button></div>
+      ${open ? `<div style="margin-left:50px;border:1px solid var(--border);border-radius:var(--r);padding:4px;max-height:200px;overflow:auto">${opts.map(o => `<label class="mi" style="cursor:pointer;min-height:28px"><input type="checkbox" class="check" data-a="fToggleVal" data-key="${p.key}" data-i="${i}" data-v="${o.id}" ${f.v.includes(o.id) ? 'checked' : ''}>${o.html || ''}${esc(o.name)}</label>`).join('')}</div>` : ''}`;
+    })
+    .join('');
+  return `<div class="mh fb-h">${tr('popovers.filterBy')}${v.filters.length ? `<button class="btn btn-sm btn-ghost" data-a="clearFilters" data-key="${p.key}">${tr('view.clearAll')}</button>` : ''}</div>
+    ${rows ? `<div class="fb-rows">${rows}</div>` : `<p class="fb-empty">${tr('popovers.noFilters')}</p>`}
+    <div class="msep"></div><div class="fb-add"><span class="faint">${tr('popovers.addFilter')}</span>${Object.entries(FIELDS)
+      .map(([k, x]) => `<button class="badge" style="cursor:pointer" data-a="addFilter" data-key="${p.key}" data-f="${k}">${ic(x.icon, 11)}${x.name}</button>`)
+      .join('')}</div>`;
+}

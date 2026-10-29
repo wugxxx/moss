@@ -1,0 +1,15 @@
+{
+  "name": "@moss/local-db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@moss/application": "*",
+    "@moss/client": "*",
+    "@moss/contracts": "*",
+    "@moss/sync-core": "*"
+  }
+}

@@ -1,0 +1,241 @@
+/* ============================================================
+   KANBAN
+   ============================================================ */
+.board {
+  display: flex;
+  gap: 12px;
+  padding: 14px var(--gutter) 24px;
+  overflow-x: auto;
+  flex: 1;
+  min-height: 0;
+  align-items: flex-start;
+}
+.board::after {
+  content: '';
+  flex: 0 0 8px;
+}
+.bcol {
+  width: 284px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  border-radius: var(--r-lg);
+  background: var(--sunken);
+  border: 1px solid var(--divider);
+}
+.bcol.collapsed {
+  width: 44px;
+  align-items: center;
+  padding-top: 8px;
+  cursor: pointer;
+}
+.bcol.collapsed .vname {
+  writing-mode: vertical-rl;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  margin-top: 8px;
+  color: var(--text-2);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.bcol-h {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 8px 6px 12px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.bcol-h .cnt {
+  color: var(--text-3);
+  font-weight: 500;
+}
+.bcol-h .acts {
+  margin-left: auto;
+  display: flex;
+  gap: 0;
+  opacity: 0.55;
+  transition: opacity var(--dur);
+}
+.bcol:hover .bcol-h .acts {
+  opacity: 1;
+}
+.bcol-b {
+  padding: 4px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  min-height: 60px;
+  flex: 1;
+}
+.bcol.over {
+  background: color-mix(in srgb, var(--accent) 6%, var(--sunken));
+  border-color: var(--accent-line);
+}
+.kcard {
+  background: var(--surface);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  padding: var(--card-pad) calc(var(--card-pad) + 2px);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  transition:
+    box-shadow var(--dur),
+    transform var(--dur);
+}
+.kcard:hover {
+  box-shadow:
+    0 2px 6px -2px rgba(0, 0, 0, 0.08),
+    0 0 0 1px var(--border-strong);
+}
+.kcard.dragging {
+  opacity: 0.35;
+}
+.kcard.ghost {
+  box-shadow: var(--shadow-drag);
+  transform: rotate(1.5deg);
+}
+.kcard .top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+.kcard .title {
+  font-size: var(--fs);
+  line-height: 1.4;
+  font-weight: 450;
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+}
+.kcard.done .title {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+.kcard .hacts {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: none;
+  gap: 1px;
+  background: var(--surface);
+  border-radius: var(--r-sm);
+  box-shadow: 0 0 0 1px var(--border);
+  padding: 1px;
+}
+.kcard:hover .hacts {
+  display: flex;
+}
+.kcard .labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.kcard .meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.kcard .meta .m {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.kcard .meta .av {
+  margin-left: auto;
+}
+.kcard .subp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+}
+.kcard .key {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+.drop-line {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin: -4px 2px;
+  flex-shrink: 0;
+}
+.addcard {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 8px;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  border-radius: var(--r-sm);
+  width: 100%;
+  text-align: left;
+  flex-shrink: 0;
+}
+.addcard:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.composer {
+  background: var(--surface);
+  border-radius: var(--r);
+  box-shadow:
+    0 0 0 1px var(--accent-line),
+    0 0 0 3px var(--accent-soft);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.composer textarea {
+  border: 0;
+  resize: none;
+  background: transparent;
+  outline: none;
+  font-size: var(--fs);
+  min-height: 38px;
+  padding: 0;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px var(--gutter);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  min-height: 44px;
+}
+.toolbar .btn-ghost {
+  height: var(--h-sm);
+  font-size: var(--fs-xs);
+  padding: 0 8px;
+}
+.chipsbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px var(--gutter);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+/* columns scroll on wheel/touch without a visible bar, so every column keeps the same inner width */
+.bcol-b {
+  scrollbar-width: none;
+}
+.bcol-b::-webkit-scrollbar {
+  display: none;
+}

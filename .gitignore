@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-electron/
+release/
+/main.js
+.vercel/
+.DS_Store
+__MACOSX/
+*.log
+.env*

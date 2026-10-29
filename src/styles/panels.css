@@ -1,0 +1,125 @@
+/* ============================================================
+   CARDS / PANELS
+   ============================================================ */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.panel-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 10px;
+}
+.panel-h h2 {
+  font-size: var(--fs);
+  font-weight: 600;
+  margin: 0;
+}
+.panel-h .acts {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.panel-b {
+  padding: 0 14px 14px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.stat {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  transition: background var(--dur);
+}
+.stat + .stat {
+  border-left: 1px solid var(--border);
+}
+.stat:hover {
+  background: var(--surface-2);
+}
+.stat .k {
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat .v {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.stat .d {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.stat .d.up {
+  color: var(--green);
+}
+.stat .d.bad {
+  color: var(--red);
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 16px;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* rows inside a bordered panel draw separators between themselves only, never against the panel edge */
+.panel > .mini:first-child {
+  border-top: 0;
+}
+.nrow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 14px;
+  cursor: pointer;
+}
+.nrow + .nrow {
+  border-top: 1px solid var(--divider);
+}
+.nrow.unread {
+  background: color-mix(in srgb, var(--accent) 3.5%, transparent);
+}
+.nrow:hover {
+  background: var(--surface-2);
+}
+/* Inbox list works as a secondary sidebar: no visible scrollbar (it narrowed the rows), and the
+   tab labels start on the gutter with tighter spacing so all five categories fit without clipping. */
+.inbox-list {
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: none;
+}
+.inbox-list::-webkit-scrollbar {
+  display: none;
+}
+.inbox-tabs {
+  margin-top: 8px;
+  padding: 0 var(--gutter);
+  gap: 16px;
+}
+.inbox-tabs .tab {
+  padding: 0;
+}
+.inbox-tabs .tab.on::after {
+  left: 0;
+  right: 0;
+}

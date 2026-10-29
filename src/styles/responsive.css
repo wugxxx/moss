@@ -1,0 +1,355 @@
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1100px) {
+  .grid2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .topsearch {
+    width: auto;
+  }
+  .topsearch .lbltxt,
+  .topsearch .kbd {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .shell,
+  .shell.collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .side {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 70;
+    transform: translateX(-100%);
+    transition: transform 0.22s var(--ease);
+    box-shadow: var(--shadow-pop);
+  }
+  .shell.mnav .side {
+    transform: none;
+  }
+  .shell.collapsed .side .sitem {
+    justify-content: flex-start;
+    padding: 0 8px;
+  }
+  .side-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    z-index: 69;
+    animation: fade 0.14s both;
+  }
+  :root {
+    --gutter: 16px;
+  }
+  .page {
+    padding: 20px var(--gutter) 96px;
+  }
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stat:nth-child(3) {
+    border-left: 0;
+  }
+  .stat:nth-child(n + 3) {
+    border-top: 1px solid var(--border);
+  }
+  .set {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .set-nav {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 8px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .set-nav .gh {
+    display: none;
+  }
+  .set-nav .sitem {
+    width: auto;
+    flex-shrink: 0;
+  }
+  .set {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .set-in {
+    padding: 20px 16px 96px;
+  }
+  .tl {
+    grid-template-columns: 170px minmax(0, 1fr);
+  }
+  .board {
+    padding-bottom: 90px;
+  }
+  .proj-h {
+    padding-top: 16px;
+  }
+}
+@media (max-width: 640px) {
+  :root {
+    --topbar-h: 50px;
+  }
+  .bottomnav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 45;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px));
+  }
+  .bottomnav button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 5px 0;
+    min-height: 48px;
+    font-size: 11px;
+    color: var(--text-3);
+    border-radius: var(--r-sm);
+    position: relative;
+  }
+  .bottomnav button.on {
+    color: var(--text);
+  }
+  .bottomnav .bdot {
+    position: absolute;
+    top: 3px;
+    left: calc(50% + 6px);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .hide-m {
+    display: none !important;
+  }
+  .ph h1 {
+    font-size: var(--fs-xl);
+  }
+  .ph .acts {
+    margin-left: 0;
+    width: 100%;
+  }
+  /* list & table become stacked cards */
+  .list-wrap {
+    padding-left: var(--gutter);
+  }
+  .tlist .thead {
+    display: none;
+  }
+  .tlist .trow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    padding: 10px 6px;
+    min-height: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    margin: 6px 0;
+  }
+  .tlist .trow > div {
+    padding: 0;
+  }
+  .tlist .trow .handle {
+    display: none;
+  }
+  .tlist .trow .ttl {
+    flex: 1 1 calc(100% - 30px);
+    order: 1;
+  }
+  .tlist .trow .c-check {
+    order: 0;
+  }
+  .tlist .trow .c-meta {
+    order: 2;
+  }
+  .tlist .trow > div.c-lbl:empty {
+    display: none;
+  }
+  .drawer,
+  .drawer.full {
+    width: 100vw;
+    right: 0;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: none;
+    border-radius: 0;
+    border: 0;
+  }
+  .drawer-b,
+  .drawer.full .drawer-b {
+    padding: 16px 16px 40px;
+  }
+  .modal-wrap {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal {
+    max-height: 92vh;
+    border-radius: 14px 14px 0 0;
+  }
+  .opts,
+  .tmpls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .themecards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fbuild {
+    min-width: 0;
+  }
+  .frow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .frow .conj {
+    display: none;
+  }
+  .cal-g {
+    grid-auto-rows: minmax(72px, 1fr);
+  }
+  .cev .trunc,
+  .cev .av {
+    display: none;
+  }
+  .cev {
+    height: 8px;
+    padding: 0;
+    border-radius: 3px;
+    background: var(--c);
+  }
+  .week {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+  .wcol {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tl-left {
+    display: none;
+  }
+  .tl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #toasts {
+    left: 16px;
+    right: 16px;
+    bottom: 76px;
+    align-items: stretch;
+  }
+  .kv {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+  .srow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .topsearch {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    width: var(--h-md);
+    justify-content: center;
+  }
+  .crumbs button:not(.cur),
+  .crumbs .sep {
+    display: none;
+  }
+  .crumbs .cur {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .crumbs .cur > span {
+    display: none !important;
+  }
+  .panel-h {
+    flex-wrap: wrap;
+  }
+  .panel-h h2 {
+    white-space: nowrap;
+  }
+  .topbar .ibtn,
+  .topbar .btn,
+  .topsearch {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .palette {
+    top: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) {
+    --reduce: 1;
+  }
+}
+:root[data-motion='reduce'] {
+  --reduce: 1;
+}
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal,
+  .drawer,
+  .pop,
+  .toast,
+  .bulkbar,
+  .tab.on::after {
+    animation-name: fadeOnly !important;
+    animation-duration: 0.12s !important;
+  }
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+  .prog > i,
+  .toggle::after,
+  .sitem .chev,
+  .skip {
+    transition: none;
+  }
+  .sk {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+:root[data-motion='reduce'] .modal,
+:root[data-motion='reduce'] .drawer,
+:root[data-motion='reduce'] .pop,
+:root[data-motion='reduce'] .toast,
+:root[data-motion='reduce'] .bulkbar,
+:root[data-motion='reduce'] .tab.on::after {
+  animation-name: fadeOnly !important;
+  animation-duration: 0.12s !important;
+}
+:root[data-motion='reduce'] .btn:active:not(:disabled) {
+  transform: none;
+}
+:root[data-motion='reduce'] .prog > i,
+:root[data-motion='reduce'] .toggle::after {
+  transition: none;
+}
+:root[data-motion='reduce'] .sk {
+  animation: none;
+  opacity: 0.85;
+}

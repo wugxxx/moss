@@ -1,0 +1,198 @@
+/* ============================================================
+   CALENDAR
+   ============================================================ */
+.cal {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.cal-h {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-bottom: 1px solid var(--border);
+}
+.cal-h div {
+  padding: 8px 10px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  font-weight: 500;
+}
+.cal-g {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: minmax(112px, 1fr);
+  flex: 1;
+}
+.cday {
+  border-right: 1px solid var(--divider);
+  border-bottom: 1px solid var(--divider);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  transition: background var(--dur);
+  position: relative;
+}
+.cday:nth-child(7n) {
+  border-right: 0;
+}
+.cday.out {
+  background: var(--sunken);
+}
+.cday.out .dn {
+  color: var(--text-3);
+}
+.cday.over {
+  background: var(--accent-soft);
+}
+.cday .dn {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-2);
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-variant-numeric: tabular-nums;
+}
+.cday.today .dn {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.cday .add {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  opacity: 0;
+}
+.cday:hover .add {
+  opacity: 1;
+}
+.cev {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 5px;
+  font-size: var(--fs-xs);
+  background: color-mix(in srgb, var(--c) 11%, var(--surface));
+  color: var(--text);
+  cursor: pointer;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--c) 22%, transparent);
+  text-align: left;
+  width: 100%;
+}
+.cev:hover {
+  background: color-mix(in srgb, var(--c) 18%, var(--surface));
+}
+.cev .trunc {
+  flex: 1;
+}
+.cev.done {
+  opacity: 0.55;
+}
+.cev.done .trunc {
+  text-decoration: line-through;
+}
+.cev.event {
+  background: transparent;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--c) 45%, transparent);
+}
+.cev .av {
+  --sz: 16px;
+  font-size: 7.5px;
+}
+.cmore {
+  font-size: var(--fs-2xs);
+  color: var(--text-2);
+  padding: 0 6px;
+  text-align: left;
+}
+.cmore:hover {
+  color: var(--text);
+}
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  flex: 1;
+  min-height: 0;
+}
+.wcol {
+  border-right: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.wcol:last-child {
+  border-right: 0;
+}
+.wcol-h {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.wcol-h .n {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.wcol-h.today .n {
+  color: var(--accent);
+}
+.wcol-b {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+}
+.wcol-b.over {
+  background: var(--accent-soft);
+}
+.wcard {
+  border-radius: var(--r-sm);
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+}
+.wcard:hover {
+  border-color: var(--border-strong);
+}
+.wcard .t {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+}
+.wcard .t .pdot {
+  transform: translateY(-1px);
+}
+.wcard.event {
+  background: color-mix(in srgb, var(--c) 8%, var(--surface));
+}
+.wcard .t {
+  font-weight: 500;
+  line-height: 1.3;
+}
+.wcard .m {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+}
