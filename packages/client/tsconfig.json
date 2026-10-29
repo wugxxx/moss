@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@moss/application": ["packages/application/src/index.ts"],
+      "@moss/contracts": ["packages/contracts/src/index.ts"],
+      "@moss/sync-core": ["packages/sync-core/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

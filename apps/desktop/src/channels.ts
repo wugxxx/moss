@@ -1,0 +1,18 @@
+export const IPC_CHANNELS = {
+  snapshot: 'moss:workspace:snapshot',
+  replaceSnapshot: 'moss:workspace:replaceSnapshot',
+  query: 'moss:workspace:query',
+  execute: 'moss:workspace:execute',
+  executeBatch: 'moss:workspace:executeBatch',
+  sync: 'moss:workspace:sync',
+  retryFailed: 'moss:workspace:retryFailed',
+  syncStatus: 'moss:workspace:syncStatus',
+  changed: 'moss:workspace:changed',
+  attachmentSave: 'moss:attachment:save',
+  attachmentCopy: 'moss:attachment:copy',
+  attachmentRead: 'moss:attachment:read',
+  attachmentOpen: 'moss:attachment:open',
+  attachmentReveal: 'moss:attachment:reveal',
+  attachmentRemove: 'moss:attachment:remove',
+  attachmentCleanup: 'moss:attachment:cleanup',
+} as const;

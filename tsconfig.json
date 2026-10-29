@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@moss/contracts": ["packages/contracts/src/index.ts"],
+      "@moss/domain": ["packages/domain/src/index.ts"],
+      "@moss/application": ["packages/application/src/index.ts"],
+      "@moss/client": ["packages/client/src/index.ts"],
+      "@moss/local-db": ["packages/local-db/src/index.ts"],
+      "@moss/sync-core": ["packages/sync-core/src/index.ts"],
+      "@moss/test-fixtures": ["packages/test-fixtures/src/index.ts"]
+    }
+  },
+  "include": ["packages/**/*.ts", "tests/**/*.ts"]
+}

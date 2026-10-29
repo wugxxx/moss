@@ -1,0 +1,438 @@
+/* ============================================================
+   SHELL: SIDEBAR / TOPBAR
+   ============================================================ */
+#app {
+  height: 100%;
+}
+.shell {
+  display: grid;
+  grid-template-columns: var(--side-w) minmax(0, 1fr);
+  height: 100%;
+}
+.shell.collapsed {
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+.side-scrim {
+  display: none;
+}
+.side {
+  background: var(--bg-side);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  user-select: none;
+}
+.side-top {
+  padding: 8px 8px 4px;
+}
+/* Electron's hiddenInset title bar is frameless on macOS: reserve space for the
+   traffic lights and expose the surrounding chrome as the window drag region. */
+:root[data-platform='darwin'] .side-top {
+  padding-top: 38px;
+  -webkit-app-region: drag;
+}
+:root[data-platform='darwin'] .topbar {
+  -webkit-app-region: drag;
+}
+:root[data-platform='darwin'] .side-top :is(button, a, input, select, textarea),
+:root[data-platform='darwin'] .topbar :is(button, a, input, select, textarea) {
+  -webkit-app-region: no-drag;
+}
+.ws {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 6px;
+  border-radius: var(--r-sm);
+  text-align: left;
+  transition: background var(--dur);
+}
+.ws:hover {
+  background: var(--surface-3);
+}
+.ws-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--c, #3a3934);
+  flex-shrink: 0;
+}
+.ws-logo.brand {
+  background: #000;
+  overflow: hidden;
+  border-radius: 28%;
+}
+.ws-logo.brand svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.brand .logo {
+  color: var(--text);
+}
+svg.logo {
+  display: block;
+  flex-shrink: 0;
+}
+.ws-name {
+  font-weight: 600;
+  font-size: var(--fs);
+}
+/* Scrolls without a visible bar: a scrollbar would eat width and push the nav off the logo's centre line when collapsed. */
+.side-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 8px 12px;
+  scrollbar-width: none;
+}
+.side-scroll::-webkit-scrollbar {
+  display: none;
+}
+.sgroup {
+  margin-top: 14px;
+}
+.sgroup-h {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.sgroup-h .ibtn {
+  opacity: 0;
+  transition: opacity var(--dur);
+}
+.sgroup:hover .sgroup-h .ibtn,
+.sgroup-h .ibtn:focus-visible {
+  opacity: 1;
+}
+.sitem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: var(--side-row);
+  padding: 0 8px;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: var(--fs);
+  font-weight: 450;
+  text-align: left;
+  transition:
+    background var(--dur),
+    color var(--dur);
+  position: relative;
+  white-space: nowrap;
+}
+.sitem:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.sitem.on {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 0 0 1px var(--border);
+  font-weight: 500;
+}
+:root[data-theme='dark'] .sitem.on {
+  background: var(--surface-3);
+  box-shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .sitem.on {
+    background: var(--surface-3);
+    box-shadow: none;
+  }
+}
+.sitem .i {
+  color: var(--text-4);
+}
+.sitem.on .i,
+.sitem:hover .i {
+  color: var(--text-2);
+}
+.sitem .ct {
+  margin-left: auto;
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.sitem .ct.dotc {
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  font-weight: 600;
+}
+.sitem .pico {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  color: var(--pc, var(--c));
+  flex-shrink: 0;
+}
+.sitem .pico .i {
+  color: var(--pc, var(--c)) !important;
+}
+.sitem .pico,
+.picon {
+  --pc: color-mix(in srgb, var(--c) var(--pc-mix, 100%), var(--text));
+}
+.sitem .sdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.sitem .fav {
+  color: var(--amber);
+  margin-left: 4px;
+}
+.sitem .hov {
+  margin-left: auto;
+  display: none;
+}
+.sitem:hover .hov {
+  display: flex;
+}
+.sitem:hover .sdot {
+  display: none;
+}
+.sitem.drop-before::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.sitem.dragging {
+  opacity: 0.4;
+}
+.sub {
+  padding-left: 14px;
+  margin-left: 8px;
+  border-left: 1px solid var(--border);
+  display: none;
+}
+.sub.open {
+  display: block;
+}
+.sitem .chev {
+  transition: transform var(--dur);
+  color: var(--text-4);
+}
+.sitem .chev.open {
+  transform: rotate(90deg);
+}
+.side-bot {
+  padding: 6px 8px 8px;
+  border-top: 1px solid var(--border);
+}
+.collapsed .sitem {
+  justify-content: center;
+  padding: 0;
+}
+.collapsed .sitem > span:not(.pico, .av),
+.collapsed .sitem .ct,
+.collapsed .sgroup-h,
+.collapsed .ws-name,
+.collapsed .ws .chev-d,
+.collapsed .sitem .sdot,
+.collapsed .sitem .fav,
+.collapsed .sitem .hov,
+.collapsed .sub,
+.collapsed .side-search,
+.collapsed .sitem .chev {
+  display: none !important;
+}
+.collapsed .sgroup {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.collapsed .ws {
+  justify-content: center;
+  padding: 5px 0;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--surface);
+}
+.topbar {
+  height: var(--topbar-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px 0 var(--gutter);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: relative;
+  z-index: 5;
+}
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+/* No padding or hover fill: the first crumb starts exactly on the content gutter; hover is shown with colour only. */
+.crumbs button {
+  padding: 3px 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--dur);
+}
+.crumbs button:hover {
+  color: var(--text);
+}
+.crumbs .cur {
+  color: var(--text);
+  font-weight: 500;
+}
+.crumbs .sep {
+  color: var(--text-4);
+  font-size: 12px;
+}
+.topsearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--h-sm);
+  padding: 0 6px 0 9px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  width: 220px;
+  background: var(--sunken);
+  transition: border-color var(--dur);
+}
+.topsearch:hover {
+  border-color: var(--border-strong);
+  color: var(--text-2);
+}
+.topsearch .kbd {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.topsearch .lbltxt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.content {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  position: relative;
+}
+.content:focus {
+  outline: none;
+}
+.drawer:focus {
+  outline: none;
+}
+/* Content pages with a max width sit centred in the main area; full-bleed views use .page.flush. */
+.page {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 28px var(--gutter) 72px;
+}
+.page.flush > .ph {
+  padding: 24px var(--gutter) 12px;
+  margin: 0;
+}
+.page.wide {
+  max-width: none;
+}
+.page.flush {
+  padding: 0;
+  max-width: none;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.ph {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.ph h1 {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  margin: 0;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.ph p {
+  margin: 4px 0 0;
+  color: var(--text-2);
+  font-size: var(--fs);
+}
+.ph .acts {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+h2.sec {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+h3.sub {
+  font-size: var(--fs);
+  font-weight: 600;
+  margin: 0;
+}
+.eyebrow {
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-3);
+}
+.bottomnav {
+  display: none;
+}
