@@ -1,10 +1,10 @@
 /* ---------- HOME ---------- */
 import { DAY, TODAY, diffD, esc, fmtDate, fmtWeekdayDate, parse } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { D, S, allTasks, isOver, me, pColor, progressOf, proj, visibleProjects } from '../core/store.js';
+import { S, allTasks, isOver, me, pColor, progressOf, proj, visibleProjects } from '../core/store.js';
 import { empty, pIcon, pStatus, prIcon, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
-import { actHtml, miniRow } from '../components/task-list.js';
+import { miniRow } from '../components/task-list.js';
 import { t } from '../i18n/index.js';
 
 export function pageHome() {
@@ -99,16 +99,6 @@ export function pageHome() {
             )
             .join('')}
           </div>
-        </section>
-        <section class="panel">
-          <div class="panel-h"><h2>${t('home.recentlyUpdated')}</h2></div>
-          <div class="panel-b feed lined">${D()
-            .activity.filter(a => a.task && all.some(t => t.id === a.task))
-            .sort((a, b) => b.at - a.at)
-            .map(a => actHtml(a, { proj: true }))
-            .filter(Boolean)
-            .slice(0, 7)
-            .join('')}</div>
         </section>
       </div>
     </div>
