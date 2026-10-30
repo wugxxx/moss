@@ -118,8 +118,9 @@
 }
 .drawer.full {
   width: min(980px, calc(100vw - 48px));
-  right: 50%;
-  transform: translateX(50%);
+  right: 0;
+  left: 0;
+  margin-inline: auto;
   top: 24px;
   bottom: 24px;
   border-radius: 12px;
