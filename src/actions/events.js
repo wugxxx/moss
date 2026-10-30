@@ -14,7 +14,10 @@ document.addEventListener(
       e.stopPropagation();
       return;
     }
-    const el = e.target.closest('[data-a]');
+    const closest = e.target.closest('[data-a]');
+    // The modal wrapper is a backdrop target only; clicks inside its content
+    // should not be treated as a backdrop action.
+    const el = closest?.dataset.a === 'closeModalBg' && e.target !== closest ? null : closest;
     const inPop = e.target.closest('[data-pop-root]');
     if (S.ui.pop && !inPop) {
       const trig = el && (el.dataset.a === 'pop' || el.dataset.a === 'ctxBtn' || el.dataset.a === 'addFilter');

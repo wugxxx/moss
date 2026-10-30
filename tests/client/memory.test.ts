@@ -312,6 +312,29 @@ describe('MemoryWorkspaceClient', () => {
     expect(client.snapshot().tasks[0]?.attachments).toHaveLength(0);
   });
 
+  it('deletes a legacy task attachment that has no file index record', async () => {
+    const snapshot = snapshotFixture();
+    snapshot.tasks[0]!.attachments.push({
+      id: 'legacy-attachment-1',
+      name: 'legacy-brief.pdf',
+      type: 'pdf',
+      size: '1 KB',
+      by: 'member-1',
+      at: 1,
+    });
+    const client = new MemoryWorkspaceClient(snapshot);
+
+    const result = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'file.delete',
+      entityId: 'legacy-attachment-1',
+      payload: {},
+    });
+
+    expect(result.ok).toBe(true);
+    expect(client.snapshot().tasks[0]?.attachments).toHaveLength(0);
+  });
+
   it('removes indexed files when their owning task is deleted', async () => {
     const snapshot = snapshotFixture();
     snapshot.files.push({

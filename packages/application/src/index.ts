@@ -621,12 +621,13 @@ export class WorkspaceApplication {
       }
       case 'file.delete': {
         const file = snapshot.files.find(item => item.id === command.entityId);
-        if (!file) throw new Error(`File ${command.entityId} was not found`);
-        snapshot.files = snapshot.files.filter(item => item.id !== file.id);
+        const attachmentExists = snapshot.tasks.some(task => task.attachments.some(attachment => attachment.id === command.entityId));
+        if (!file && !attachmentExists) throw new Error(`File ${command.entityId} was not found`);
+        snapshot.files = snapshot.files.filter(item => item.id !== command.entityId);
         for (const task of snapshot.tasks) {
-          task.attachments = task.attachments.filter(attachment => attachment.id !== file.id);
+          task.attachments = task.attachments.filter(attachment => attachment.id !== command.entityId);
         }
-        return { type: 'workspace', ids: [file.id] };
+        return { type: 'workspace', ids: [command.entityId] };
       }
       case 'savedView.create': {
         if (snapshot.savedViews.some(view => view.id === command.payload.view.id)) {
