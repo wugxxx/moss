@@ -462,6 +462,8 @@ The first sync release uses revision-checked field merging, not CRDT.
 - Labels and project members use add/remove commands.
 - Reordering uses `rank`, not whole-list replacement.
 - Delete and archive operations are tombstones and win over edits.
+- Archiving a project hides its tasks from active task queries without changing
+  their individual archive flags; `includeArchived` exposes them again.
 - Restoring deleted data is an explicit command.
 - Rich-text conflicts preserve both versions rather than overwriting a body.
 

@@ -5,21 +5,23 @@ import { D, S, allTasks, pColor, proj, visibleProjects } from '../core/store.js'
 import { FT, empty, hl, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 import { t } from '../i18n/index.js';
 
-export function searchAll(q) {
+export function searchAll(q, includeArchived = S.ui.searchArchived) {
   q = (q || '').trim().toLowerCase();
   if (!q) return { tasks: [], projects: [], files: [] };
   const has = s => (s || '').toLowerCase().includes(q);
+  const tasks = includeArchived ? D().tasks : allTasks();
+  const projects = includeArchived ? D().projOrder.map(proj).filter(Boolean) : visibleProjects();
+  const files = includeArchived ? D().files : D().files.filter(file => !proj(file.project)?.archived);
   return {
-    tasks: allTasks()
-      .filter(t => has(t.title) || has(t.key) || has(t.desc.replace(/<[^>]+>/g, '')))
-      .slice(0, 30),
-    projects: visibleProjects().filter(p => has(p.name) || has(p.desc)),
-    files: D().files.filter(f => has(f.name)),
+    tasks: tasks.filter(t => has(t.title) || has(t.key) || has(t.desc.replace(/<[^>]+>/g, ''))).slice(0, 30),
+    projects: projects.filter(p => has(p.name) || has(p.desc)),
+    files: files.filter(f => has(f.name)),
   };
 }
 export function pageSearch() {
   const q = S.ui.searchQ;
-  const r = searchAll(q);
+  const includeArchived = !!S.ui.searchArchived;
+  const r = searchAll(q, includeArchived);
   const cat = S.ui.searchCat;
   const cats = [
     ['all', t('search.categories.all')],
@@ -34,7 +36,10 @@ export function pageSearch() {
       : '';
   return `<div class="page" style="max-width:860px">
     <div class="inwrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="${t('search.placeholder')}" value="${esc(q)}" style="padding-left:34px;font-size:15px" aria-label="${t('common.search')}"></div>
-    <div class="tabs" style="margin-bottom:18px">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : r[k].length}</span></button>`).join('')}</div>
+    <div class="row" style="align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+      <div class="tabs" style="flex:1;margin-bottom:0">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : r[k].length}</span></button>`).join('')}</div>
+      <label class="row" style="gap:7px;font-size:12.5px;color:var(--text-2);cursor:pointer"><input type="checkbox" class="toggle" data-in="searchArchived" ${includeArchived ? 'checked' : ''}>${t('search.includeArchived')}</label>
+    </div>
     ${
       !q
         ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">${t('search.recent')}</span>${D()

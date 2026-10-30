@@ -1,7 +1,7 @@
 /* ---------- drag & drop ---------- */
 import { $, $$, addD, diffD, fmtDate, iso, parse } from '../core/utils.js';
 import { PR, ST } from '../core/constants.js';
-import { D, S, proj, save, task } from '../core/store.js';
+import { D, S, isTaskActive, proj, save, task } from '../core/store.js';
 import { toast } from '../ui/toast.js';
 import { fxSet, render } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
@@ -137,7 +137,7 @@ document.addEventListener('drop', e => {
   if (d.type === 'card' && d.col) {
     const t = task(d.id);
     const colTs = D()
-      .tasks.filter(x => x.status === d.col && x.id !== t.id && !x.archived)
+      .tasks.filter(x => x.status === d.col && x.id !== t.id && isTaskActive(x))
       .sort((a, b) => a.order - b.order);
     let order;
     if (d.before) {
@@ -157,7 +157,7 @@ document.addEventListener('drop', e => {
     const key = d.lkey;
     const v = key ? viewOf(key) : null;
     const all = D()
-      .tasks.filter(x => !x.archived && x.id !== t.id)
+      .tasks.filter(x => isTaskActive(x) && x.id !== t.id)
       .sort((a, b) => a.order - b.order);
     const i = all.findIndex(x => x.id === tg.id);
     const nb = d.pos === 'before' ? all[i - 1] : all[i + 1];

@@ -68,6 +68,7 @@ export const S = {
     settings: 'appearance',
     searchQ: '',
     searchCat: 'all',
+    searchArchived: false,
     collapsedCols: {},
     errors: {},
   },
@@ -115,8 +116,11 @@ export const visibleProjects = () =>
     .projOrder.map(proj)
     .filter(Boolean)
     .filter(p => !p.archived);
+export const isTaskActive = t => !t.archived && !proj(t.project)?.archived;
+// Archiving a project keeps its tasks inspectable on the project page, but
+// workspace-wide task views should only include active project scopes.
 export const tasksOf = pid => D().tasks.filter(t => t.project === pid && !t.archived);
-export const allTasks = () => D().tasks.filter(t => !t.archived);
+export const allTasks = () => D().tasks.filter(isTaskActive);
 export const isOver = t => t.due && t.status !== 'done' && diffD(parse(t.due), TODAY) < 0;
 export const commentsOf = tid => D().comments.filter(c => c.task === tid);
 export function progressOf(pid) {

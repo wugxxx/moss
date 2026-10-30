@@ -2,6 +2,7 @@ import type { ChangeSet, CommandResult, WorkspaceCommand, WorkspaceQuery, Worksp
 import { WorkspaceApplication, type CommandReceipt, type WorkspaceCommitContext, type WorkspaceRepository } from '@moss/application';
 import type { SyncStatus, WorkspaceClient } from './contracts.js';
 import { normalizeSnapshot } from './normalize.js';
+import { listTasks } from './task-query.js';
 
 class MemoryRepository implements WorkspaceRepository {
   private current: WorkspaceSnapshot;
@@ -69,10 +70,8 @@ export class MemoryWorkspaceClient implements WorkspaceClient {
       case 'bootstrap':
       case 'workspace.snapshot':
         return snapshot;
-      case 'tasks.list': {
-        const { projectId, includeArchived = false } = query.options ?? {};
-        return snapshot.tasks.filter(task => (!projectId || task.project === projectId) && (includeArchived || !task.archived));
-      }
+      case 'tasks.list':
+        return listTasks(snapshot, query.options);
       case 'task.detail':
         return {
           task: snapshot.tasks.find(task => task.id === query.taskId)!,

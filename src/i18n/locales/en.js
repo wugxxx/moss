@@ -303,6 +303,7 @@ export default {
     title: 'Search',
     placeholder: 'Search tasks, projects, and files',
     categories: { all: 'All', tasks: 'Tasks', projects: 'Projects', files: 'Files' },
+    includeArchived: 'Include archived',
     recent: 'Recent:',
     nothingMatches: 'Nothing matches “{query}”. Check the spelling or try a broader term.',
     clearSearch: 'Clear search',
@@ -549,7 +550,7 @@ export default {
     importBackupAction: 'Import backup',
     archiveProjectQuestion: 'Archive {project}?',
     archiveProjectBody:
-      'The project will be hidden from the sidebar and project lists. Its tasks and files are kept, and you can restore it from Settings → Projects.',
+      '“{project}” and all of its tasks ({count}) will be hidden from Home, Tasks, Calendar, and search. Tasks and files are kept, and you can restore the project from Settings → Archive.',
     locallyStored: 'The file is stored locally in this workspace.',
     noStoredContent: 'This sample or legacy record has no stored file contents.',
     browserMetadataOnly: 'Browser mode stores file metadata only.',

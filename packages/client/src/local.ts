@@ -2,6 +2,7 @@ import type { ChangeSet, CommandResult, WorkspaceCommand, WorkspaceQuery, Worksp
 import type { WorkspaceRepository } from '@moss/application';
 import { WorkspaceApplication } from '@moss/application';
 import type { SyncStatus, WorkspaceClient } from './contracts.js';
+import { listTasks } from './task-query.js';
 
 export interface LocalWorkspaceClientOptions {
   repository: WorkspaceRepository;
@@ -52,10 +53,8 @@ export class LocalWorkspaceClient implements WorkspaceClient {
       case 'bootstrap':
       case 'workspace.snapshot':
         return snapshot;
-      case 'tasks.list': {
-        const { projectId, includeArchived = false } = query.options ?? {};
-        return snapshot.tasks.filter(task => (!projectId || task.project === projectId) && (includeArchived || !task.archived));
-      }
+      case 'tasks.list':
+        return listTasks(snapshot, query.options);
       case 'task.detail': {
         const task = snapshot.tasks.find(item => item.id === query.taskId);
         return {
