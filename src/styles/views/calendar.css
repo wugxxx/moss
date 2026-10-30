@@ -104,6 +104,14 @@
   border-style: dashed;
   border-color: color-mix(in srgb, var(--c) 45%, transparent);
 }
+.cev[draggable='true'],
+.wcard[draggable='true'] {
+  cursor: grab;
+}
+.cev.dragging,
+.wcard.dragging {
+  opacity: 0.45;
+}
 .cev .av {
   --sz: 16px;
   font-size: 7.5px;
