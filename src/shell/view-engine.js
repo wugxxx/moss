@@ -1,8 +1,8 @@
 /* ---------- filter engine ---------- */
 import { DAY, TODAY, diffD, esc, parse } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { LABELS, PR, PRIOS, STATUSES } from '../core/constants.js';
-import { S, isOver, pColor, proj, visibleProjects } from '../core/store.js';
+import { PR, PRIOS, STATUSES } from '../core/constants.js';
+import { S, isOver, labelColor, labelName, labels, pColor, proj, visibleProjects } from '../core/store.js';
 import { prIcon, stIcon } from '../ui/helpers.js';
 import { t } from '../i18n/index.js';
 
@@ -46,7 +46,7 @@ export const FIELDS = {
       return t('common.labels');
     },
     icon: 'tag',
-    opts: () => LABELS.map(l => ({ id: l.id, name: l.name, html: `<span class="pdot" style="--c:${l.c}"></span>` })),
+    opts: () => labels().map(l => ({ id: l.id, name: labelName(l), html: `<span class="pdot" style="--c:${labelColor(l)}"></span>` })),
   },
   created: {
     get name() {

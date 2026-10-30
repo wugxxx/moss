@@ -1,6 +1,6 @@
 /* ---------- store ---------- */
 import { TODAY, diffD, iso, parse } from './utils.js';
-import { PCOLORS } from './constants.js';
+import { PCOLORS, labelColorValue } from './constants.js';
 import { seed } from '../data/seed.js';
 import { workspace } from './workspace-client.js';
 
@@ -110,6 +110,10 @@ export const me = () => D().members.find(m => m.id === D().me);
 export const mem = id => D().members.find(m => m.id === id);
 export const proj = id => D().projects.find(p => p.id === id);
 export const task = id => D().tasks.find(t => t.id === id);
+export const labels = () => D().labels || [];
+export const label = id => labels().find(item => item.id === id);
+export const labelName = item => item?.name || '';
+export const labelColor = item => labelColorValue(item?.color);
 export const pColor = p => PCOLORS[p?.color] || PCOLORS.slate;
 export const visibleProjects = () =>
   D()

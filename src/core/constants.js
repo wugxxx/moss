@@ -1,5 +1,6 @@
 /* ---------- vocab ---------- */
 import { t } from '../i18n/index.js';
+import { LABEL_COLOR_IDS } from '@moss/contracts';
 
 export const STATUSES = [
   {
@@ -72,65 +73,8 @@ export const PRIOS = [
   },
 ];
 export const PR = Object.fromEntries(PRIOS.map(p => [p.id, p]));
-export const LABELS = [
-  {
-    id: 'design',
-    get name() {
-      return t('vocab.label.design');
-    },
-    c: 'var(--violet)',
-  },
-  {
-    id: 'frontend',
-    get name() {
-      return t('vocab.label.frontend');
-    },
-    c: 'var(--blue)',
-  },
-  {
-    id: 'backend',
-    get name() {
-      return t('vocab.label.backend');
-    },
-    c: 'var(--teal)',
-  },
-  {
-    id: 'research',
-    get name() {
-      return t('vocab.label.research');
-    },
-    c: 'var(--amber)',
-  },
-  {
-    id: 'content',
-    get name() {
-      return t('vocab.label.content');
-    },
-    c: 'var(--rose)',
-  },
-  {
-    id: 'bug',
-    get name() {
-      return t('vocab.label.bug');
-    },
-    c: 'var(--red)',
-  },
-  {
-    id: 'qa',
-    get name() {
-      return t('vocab.label.qa');
-    },
-    c: 'var(--green)',
-  },
-  {
-    id: 'growth',
-    get name() {
-      return t('vocab.label.growth');
-    },
-    c: 'var(--orange)',
-  },
-];
-export const LB = Object.fromEntries(LABELS.map(l => [l.id, l]));
+export const LABEL_COLORS = LABEL_COLOR_IDS.map(id => ({ id, c: `var(--${id})` }));
+export const labelColorValue = value => LABEL_COLORS.find(color => color.id === value)?.c || LABEL_COLORS.at(-1).c;
 export const PSTAT = {
   planning: {
     get name() {

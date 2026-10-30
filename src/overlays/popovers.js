@@ -1,8 +1,8 @@
 /* ---------------- POPOVERS ---------------- */
 import { $, TODAY, addD, dOff, diffD, esc, fmtDate, iso, monthLong, parse, relDate, weekdayShort } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { LABELS, PRIOS, PSTAT, STATUSES } from '../core/constants.js';
-import { D, S, allTasks, me, pColor, proj, task, visibleProjects } from '../core/store.js';
+import { PRIOS, PSTAT, STATUSES } from '../core/constants.js';
+import { D, S, allTasks, labelColor, labelName, labels, me, pColor, proj, task, visibleProjects } from '../core/store.js';
 import { av, prIcon, stIcon } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
 import { FIELDS, viewOf } from '../shell/view-engine.js';
@@ -108,16 +108,18 @@ export function popHtml(p) {
       inner = popList(PRIOS.map(x => ({ id: x.id, name: x.name, html: prIcon(x.id), on: t?.priority === x.id })));
       break;
     case 'labels':
-      inner = popList(
-        LABELS.map(l => ({
-          id: l.id,
-          name: l.name,
-          html: `<span class="pdot" style="--c:${l.c}"></span>`,
-          on: t?.labels.includes(l.id),
-          act: 'popToggleLabel',
-        })),
-        { search: tr('popovers.searchLabels') },
-      );
+      inner =
+        popList(
+          labels().map(l => ({
+            id: l.id,
+            name: labelName(l),
+            html: `<span class="pdot" style="--c:${labelColor(l)}"></span>`,
+            on: t?.labels.includes(l.id),
+            act: 'popToggleLabel',
+          })),
+          { search: tr('popovers.searchLabels') },
+        ) +
+        `<div class="msep"></div><button class="mi" data-a="go" data-r="settings" data-sec="labels">${ic('settings', 14)}${tr('settings.manageLabels')}</button>`;
       break;
     case 'project':
       inner = popList(

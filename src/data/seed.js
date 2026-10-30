@@ -22,6 +22,7 @@ export function seed() {
     ],
     projects: [],
     tasks: [],
+    labels: [],
     comments: [],
     activity: [],
     notifs: [],

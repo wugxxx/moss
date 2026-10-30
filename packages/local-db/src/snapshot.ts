@@ -1,4 +1,5 @@
 import type { Activity, Comment, FileRecord, Member, Project, SavedView, Task, WorkspaceSnapshot } from '@moss/contracts';
+import { normalizeLabelDefinitions } from '@moss/contracts';
 
 export interface SnapshotRow {
   id: string;
@@ -16,6 +17,8 @@ export function parseRow<T>(row: { data: string }): T {
 
 export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapshot {
   const copy = structuredClone(snapshot);
+  const labels = normalizeLabelDefinitions(copy.labels);
+  const labelIds = new Set(labels.map(label => label.id));
   return {
     ...copy,
     members: copy.members ?? [],
@@ -28,7 +31,7 @@ export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapsho
     })),
     tasks: (copy.tasks ?? []).map(task => ({
       ...task,
-      labels: task.labels ?? [],
+      labels: (task.labels ?? []).filter(id => labelIds.has(id)),
       subtasks: task.subtasks ?? [],
       attachments: task.attachments ?? [],
       deps: task.deps ?? [],
@@ -36,6 +39,7 @@ export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapsho
       recur: task.recur ?? null,
       revision: task.revision ?? 0,
     })),
+    labels,
     comments: copy.comments ?? [],
     activity: copy.activity ?? [],
     notifs: copy.notifs ?? [],
@@ -49,7 +53,14 @@ export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapsho
       notes: event.notes ?? '',
     })),
     projOrder: copy.projOrder ?? [],
-    savedViews: copy.savedViews ?? [],
+    savedViews: (copy.savedViews ?? []).map(view => ({
+      ...view,
+      filters: view.filters.flatMap(filter => {
+        if (filter.f !== 'labels') return [filter];
+        const values = filter.v.filter(id => labelIds.has(id));
+        return values.length ? [{ ...filter, v: values }] : [];
+      }),
+    })),
     recentSearches: copy.recentSearches ?? [],
     sessions: copy.sessions ?? [],
     invoices: copy.invoices ?? [],

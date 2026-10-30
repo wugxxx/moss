@@ -3,7 +3,7 @@
    ===================================================================== */
 import { dOff, esc, fmtDate, fmtDateTime } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { D, S, me } from '../core/store.js';
+import { D, S, labelColor, labelName, labels, me } from '../core/store.js';
 import { av } from '../ui/helpers.js';
 import { SHORTCUTS } from '../overlays/modals.js';
 import { archiveBody } from '../features/archive.js';
@@ -24,6 +24,7 @@ export const SET_NAV = [
     'settings.work',
     [
       ['projects', 'settings.projectsDefaults', 'folder-kanban'],
+      ['labels', 'settings.labels', 'tag'],
       ['archive', 'archive.title', 'archive'],
       ['preferences', 'settings.preferences', 'sliders-horizontal'],
     ],
@@ -194,6 +195,8 @@ export function settingsBody(sec, title) {
         )
       );
     }
+    case 'labels':
+      return labelsSettings(title);
     case 'archive':
       return H(t('archive.lead')) + archiveBody();
     case 'preferences':
@@ -258,6 +261,42 @@ export function settingsBody(sec, title) {
       );
   }
   return settingsBody('appearance', t('settings.appearance'));
+}
+
+function labelsSettings(title) {
+  const items = labels();
+  const counts = new Map(
+    D().tasks.reduce((acc, task) => {
+      for (const id of task.labels) acc.set(id, (acc.get(id) || 0) + 1);
+      return acc;
+    }, new Map()),
+  );
+  const rows = items
+    .map((item, index) => {
+      const used = counts.get(item.id) || 0;
+      return `<div class="label-row">
+        <span class="label-swatch" style="--c:${labelColor(item)}"><i></i></span>
+        <div class="grow" style="min-width:0">
+          <div class="label-name trunc">${esc(labelName(item))}</div>
+          <div class="faint" style="font-size:12px">${t('settings.labelUsage', { count: used })}</div>
+        </div>
+        <div class="label-row-actions">
+          <button id="label-up-${esc(item.id)}" class="ibtn ibtn-sm" data-a="labelUp" data-id="${esc(item.id)}" ${index === 0 ? 'disabled' : ''} aria-label="${t('settings.moveLabelUp', { name: esc(labelName(item)) })}">${ic('arrow-up', 14)}</button>
+          <button id="label-down-${esc(item.id)}" class="ibtn ibtn-sm" data-a="labelDown" data-id="${esc(item.id)}" ${index === items.length - 1 ? 'disabled' : ''} aria-label="${t('settings.moveLabelDown', { name: esc(labelName(item)) })}">${ic('arrow-down', 14)}</button>
+          <button id="label-edit-${esc(item.id)}" class="ibtn ibtn-sm" data-a="editLabel" data-id="${esc(item.id)}" aria-label="${t('settings.editLabel', { name: esc(labelName(item)) })}">${ic('pencil', 14)}</button>
+          <button id="label-delete-${esc(item.id)}" class="ibtn ibtn-sm danger" data-a="deleteLabel" data-id="${esc(item.id)}" aria-label="${t('settings.deleteLabel', { name: esc(labelName(item)) })}">${ic('trash-2', 14)}</button>
+        </div>
+      </div>`;
+    })
+    .join('');
+  return `<h1>${title}</h1><p class="lead">${t('settings.labelsLead')}</p>
+    <div class="sblock" style="margin-top:0">
+      <div class="label-manager-head">
+        <div><h2>${t('settings.allLabels')}</h2><p class="hint">${t('settings.labelsOrderHelp')}</p></div>
+        <button class="btn btn-primary btn-sm" data-a="newLabel">${ic('plus', 14)}${t('settings.addLabel')}</button>
+      </div>
+      ${rows ? `<div class="label-list">${rows}</div>` : `<div class="label-empty">${ic('tag', 20)}<b>${t('settings.noLabels')}</b><span>${t('settings.noLabelsHelp')}</span></div>`}
+    </div>`;
 }
 
 function dataSettings(title) {

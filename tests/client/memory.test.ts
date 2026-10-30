@@ -46,6 +46,93 @@ describe('MemoryWorkspaceClient', () => {
     expect(await client.query({ type: 'tasks.list' })).toHaveLength(1);
   });
 
+  it('creates, edits, reorders, and deletes workspace labels', async () => {
+    const client = new MemoryWorkspaceClient(snapshotFixture());
+    expect(client.snapshot().labels).toEqual([]);
+
+    const created = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'label.create',
+      payload: { label: { id: 'customer', name: 'Customer', color: 'blue' } },
+    });
+    expect(created.ok).toBe(true);
+    expect(client.snapshot().labels).toContainEqual({ id: 'customer', name: 'Customer', color: 'blue' });
+
+    await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'label.create',
+      payload: { label: { id: 'priority', name: 'Priority', color: 'amber' } },
+    });
+
+    const patched = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'label.patch',
+      entityId: 'customer',
+      payload: { patch: { name: 'Customer feedback', color: 'rose' } },
+    });
+    expect(patched.ok).toBe(true);
+    expect(client.snapshot().labels.find(label => label.id === 'customer')).toMatchObject({ name: 'Customer feedback', color: 'rose' });
+
+    const reordered = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'label.reorder',
+      payload: { orderedIds: ['customer', 'priority'] },
+    });
+    expect(reordered.ok).toBe(true);
+    expect(
+      client
+        .snapshot()
+        .labels.slice(0, 2)
+        .map(label => label.id),
+    ).toEqual(['customer', 'priority']);
+
+    await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'task.patch',
+      entityId: 'task-1',
+      payload: { patch: { labels: ['priority', 'customer'] } },
+    });
+    const deleted = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'label.delete',
+      entityId: 'customer',
+      payload: {},
+    });
+    expect(deleted.ok).toBe(true);
+    expect(client.snapshot().labels.some(label => label.id === 'customer')).toBe(false);
+    expect(client.snapshot().tasks[0]?.labels).toEqual(['priority']);
+  });
+
+  it('removes legacy built-in labels from existing workspaces', () => {
+    const snapshot = snapshotFixture();
+    snapshot.labels = [
+      { id: 'design', name: 'Design', color: 'violet' },
+      { id: 'customer', name: 'Customer', color: 'blue' },
+    ];
+    snapshot.tasks[0]!.labels = ['design', 'customer', 'missing'];
+    snapshot.savedViews = [
+      {
+        id: 'view-1',
+        project: 'project-1',
+        name: 'Customer work',
+        type: 'list',
+        filters: [
+          { f: 'labels', op: 'any', v: ['design', 'customer', 'missing'] },
+          { f: 'status', op: 'any', v: ['todo'] },
+        ],
+      },
+    ];
+
+    const client = new MemoryWorkspaceClient(snapshot);
+
+    expect(client.snapshot().labels).toEqual([{ id: 'customer', name: 'Customer', color: 'blue' }]);
+    expect(client.snapshot().tasks[0]?.labels).toEqual(['customer']);
+    expect(client.snapshot().savedViews[0]?.filters).toEqual([
+      { f: 'labels', op: 'any', v: ['customer'] },
+      { f: 'status', op: 'any', v: ['todo'] },
+    ]);
+  });
+
   it('creates a recurrence when a recurring task is completed', async () => {
     const snapshot = snapshotFixture();
     snapshot.tasks = [

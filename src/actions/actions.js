@@ -4,7 +4,7 @@
 import { $, $$, TODAY, addD, dOff, esc, iso, parse, uid } from '../core/utils.js';
 import { PR, PSTAT } from '../core/constants.js';
 import { seed } from '../data/seed.js';
-import { D, DEFAULT_PREFS, S, allTasks, me, proj, replaceWorkspace, save, task, tasksOf, visibleProjects } from '../core/store.js';
+import { D, DEFAULT_PREFS, S, allTasks, label, labelName, labels, me, proj, replaceWorkspace, save, task, tasksOf, visibleProjects } from '../core/store.js';
 import { fileType, fsize } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
 import { toast } from '../ui/toast.js';
@@ -1972,6 +1972,89 @@ IN.prefSel = el => {
   render();
   toast(tr('common.preferencesSaved'), { ms: 1500 });
 };
+A.newLabel = () => {
+  S.ui.pop = null;
+  S.ui.lform = { name: '', color: 'violet' };
+  S.ui.errors.labelName = null;
+  openModal({ type: 'label' });
+};
+A.editLabel = el => {
+  const item = label(el.dataset.id);
+  if (!item) return;
+  S.ui.pop = null;
+  S.ui.lform = { name: labelName(item), color: item.color };
+  S.ui.errors.labelName = null;
+  openModal({ type: 'label', editId: item.id });
+};
+IN.lform = el => {
+  S.ui.lform[el.dataset.f] = el.value;
+  if (el.dataset.f === 'name' && S.ui.errors.labelName && el.value.trim()) {
+    S.ui.errors.labelName = null;
+    render();
+  }
+};
+A.lformSet = el => {
+  S.ui.lform[el.dataset.f] = el.dataset.v;
+  render();
+};
+A.submitLabel = () => {
+  const m = S.ui.modals[S.ui.modals.length - 1];
+  if (m?.type !== 'label') return;
+  const f = S.ui.lform;
+  const name = ($('#label-name')?.value ?? f.name).trim();
+  if (!name) {
+    S.ui.errors.labelName = tr('modals.labelNameRequired');
+    render();
+    $('#label-name')?.focus();
+    return;
+  }
+  const duplicate = labels().some(item => item.id !== m.editId && labelName(item).toLocaleLowerCase() === name.toLocaleLowerCase());
+  if (duplicate) {
+    S.ui.errors.labelName = tr('modals.labelNameDuplicate');
+    render();
+    $('#label-name')?.focus();
+    return;
+  }
+  S.ui.errors.labelName = null;
+  S.ui.modals.pop();
+  render();
+  if (m.editId) {
+    void runCommand('label.patch', { patch: { name, color: f.color } }, m.editId).then(result => {
+      if (result) toast(tr('toast.labelUpdated'));
+    });
+  } else {
+    void runCommand('label.create', { label: { id: uid('label_'), name, color: f.color } }).then(result => {
+      if (result) toast(tr('toast.labelCreated'));
+    });
+  }
+};
+A.deleteLabel = el => {
+  const item = label(el.dataset.id);
+  if (!item) return;
+  const count = D().tasks.filter(task => task.labels.includes(item.id)).length;
+  confirmDlg({
+    title: tr('modals.deleteLabelTitle', { name: labelName(item) }),
+    body: tr('modals.deleteLabelBody', { name: esc(labelName(item)), count }),
+    ok: tr('modals.deleteLabel'),
+    danger: true,
+    icon: 'tag',
+    run: () => {
+      void runCommand('label.delete', {}, item.id).then(result => {
+        if (result) toast(tr('toast.labelDeleted'));
+      });
+    },
+  });
+};
+A._labelMove = (el, direction) => {
+  const ids = labels().map(item => item.id);
+  const index = ids.indexOf(el.dataset.id);
+  const nextIndex = index + direction;
+  if (index < 0 || nextIndex < 0 || nextIndex >= ids.length) return;
+  [ids[index], ids[nextIndex]] = [ids[nextIndex], ids[index]];
+  void runCommand('label.reorder', { orderedIds: ids });
+};
+A.labelUp = el => A._labelMove(el, -1);
+A.labelDown = el => A._labelMove(el, 1);
 A.avColor = el => {
   void runCommand('member.patch', { patch: { c: el.dataset.v } }, D().me).then(result => {
     if (result) toast(tr('toast.avatarSaved'), { ms: 1500 });
