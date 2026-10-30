@@ -80,6 +80,7 @@ export async function initWorkspaceClient() {
     persistWorkspace();
   });
   S.data = workspace.snapshot();
+  persistWorkspace();
   void workspace.cleanupAttachments().catch(error => console.warn('Attachment cleanup failed', error));
 }
 export let _saveT;

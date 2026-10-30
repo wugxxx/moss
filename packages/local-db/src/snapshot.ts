@@ -1,5 +1,5 @@
 import type { Activity, Comment, FileRecord, Member, Project, SavedView, Task, WorkspaceSnapshot } from '@moss/contracts';
-import { normalizeLabelDefinitions } from '@moss/contracts';
+import { normalizeLabelDefinitions, normalizeProjectLast } from '@moss/contracts';
 
 export interface SnapshotRow {
   id: string;
@@ -27,6 +27,7 @@ export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapsho
       fav: project.fav ?? false,
       members: project.members ?? [],
       milestones: project.milestones ?? [],
+      last: normalizeProjectLast(project.last),
       revision: project.revision ?? 0,
     })),
     tasks: (copy.tasks ?? []).map(task => ({

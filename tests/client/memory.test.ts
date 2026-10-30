@@ -133,6 +133,18 @@ describe('MemoryWorkspaceClient', () => {
     ]);
   });
 
+  it('normalizes legacy minute-based project activity timestamps', () => {
+    const snapshot = snapshotFixture();
+    snapshot.projects[0]!.last = 15;
+    const before = Date.now() - 15 * 60_000;
+
+    const client = new MemoryWorkspaceClient(snapshot);
+    const last = client.snapshot().projects[0]!.last;
+
+    expect(last).toBeGreaterThanOrEqual(before);
+    expect(last).toBeLessThanOrEqual(Date.now() - 15 * 60_000);
+  });
+
   it('creates a recurrence when a recurring task is completed', async () => {
     const snapshot = snapshotFixture();
     snapshot.tasks = [

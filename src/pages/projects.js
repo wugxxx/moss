@@ -1,10 +1,15 @@
 /* ---------- PROJECTS ---------- */
-import { ago, esc, fmtDate, minsAgo } from '../core/utils.js';
+import { ago, esc, fmtDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
-import { S, progressOf, tasksOf, visibleProjects } from '../core/store.js';
+import { D, S, progressOf, tasksOf, visibleProjects } from '../core/store.js';
 import { empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
 import { t } from '../i18n/index.js';
+
+function projectLastAt(p) {
+  if (typeof p.last === 'number' && Number.isFinite(p.last) && p.last > 0) return p.last;
+  return D().activity.find(activity => activity.project === p.id)?.at ?? null;
+}
 
 export function projectCard(p) {
   const ts = tasksOf(p.id);
@@ -14,7 +19,7 @@ export function projectCard(p) {
     <div class="row">${pIcon(p)}<div class="grow" style="min-width:0"><div class="row" style="gap:6px"><b class="trunc" style="font-weight:600;font-size:14px">${esc(p.name)}</b>${p.fav ? `<span style="color:var(--amber)">${ic('star', 12)}</span>` : ''}</div></div>${pStatus(p.status)}</div>
     <div class="desc">${esc(p.desc)}</div>
     <div class="row" style="gap:10px">${progBar(pr, p.status === 'complete' ? 'green' : p.status === 'risk' ? 'red' : '')}<span class="num" style="font-size:12px;font-weight:500">${pr}%</span></div>
-    <div class="foot"><span class="row" style="gap:4px">${ic('circle-check', 12)}${ts.length - open}/${ts.length}</span><span class="row" style="gap:4px">${ic('calendar', 12)}${fmtDate(p.due)}</span><span class="row hide-m" style="gap:4px">${ic('clock', 12)}${ago(minsAgo(p.last))}</span></div>
+    <div class="foot"><span class="row" style="gap:4px">${ic('circle-check', 12)}${ts.length - open}/${ts.length}</span><span class="row" style="gap:4px">${ic('calendar', 12)}${fmtDate(p.due)}</span><span class="row hide-m" style="gap:4px">${ic('clock', 12)}${ago(projectLastAt(p))}</span></div>
     <button class="ibtn ibtn-sm more" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="${t('nav.projectOptions')}" style="background:var(--surface);box-shadow:0 0 0 1px var(--border)">${ic('ellipsis', 14)}</button>
   </div>`;
 }
@@ -46,7 +51,7 @@ export function pageProjects() {
       .map(p => {
         const ts = tasksOf(p.id);
         const pr = progressOf(p.id);
-        return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<span style="font-weight:500">${esc(p.name)}</span></span></td><td style="text-align:left">${pStatus(p.status)}</td><td><span class="row">${progBar(pr)}<span class="num faint" style="font-size:11.5px">${pr}%</span></span></td><td class="num">${ts.length}</td><td style="text-align:left" class="num muted">${fmtDate(p.start)}</td><td style="text-align:left" class="num muted">${fmtDate(p.due)}</td><td style="text-align:left" class="muted">${ago(minsAgo(p.last))}</td><td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="${t('common.options')}">${ic('ellipsis', 14)}</button></td></tr>`;
+        return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<span style="font-weight:500">${esc(p.name)}</span></span></td><td style="text-align:left">${pStatus(p.status)}</td><td><span class="row">${progBar(pr)}<span class="num faint" style="font-size:11.5px">${pr}%</span></span></td><td class="num">${ts.length}</td><td style="text-align:left" class="num muted">${fmtDate(p.start)}</td><td style="text-align:left" class="num muted">${fmtDate(p.due)}</td><td style="text-align:left" class="muted">${ago(projectLastAt(p))}</td><td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="${t('common.options')}">${ic('ellipsis', 14)}</button></td></tr>`;
       })
       .join('')}
     </tbody></table></div>`;
