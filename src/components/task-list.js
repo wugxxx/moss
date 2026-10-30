@@ -109,7 +109,7 @@ export function listHtml(groups, key, opt = {}) {
             : ''
         }
         ${coll ? '' : g.tasks.map(t => taskRow(t, cols, tpl, { group: g.key, drag: opt.drag, complete: opt.complete, key })).join('')}
-        ${coll || opt.noAdd ? '' : comp ? `<div class="addrow" style="background:var(--surface-2)">${ic('plus', 14)}<input class="inline-in" id="composer-in" data-key-enter="commitComposer" placeholder="${tt('tasks.addTaskPlaceholder')}" aria-label="${tt('common.taskName')}"></div>` : `<button class="addrow" data-a="startComposer" data-ctx="${key}" data-group="${g.key}" data-gb="${esc(JSON.stringify(g.set || {}))}">${ic('plus', 14)}${tt('common.addTask')}</button>`}`;
+        ${coll || opt.noAdd ? '' : comp ? `<div class="addrow" style="background:var(--surface-2)">${ic('plus', 14)}<input class="inline-in" id="composer-in" data-in="composer" data-key-enter="commitComposer" value="${esc(comp.draft || '')}" placeholder="${tt('tasks.addTaskPlaceholder')}" aria-label="${tt('common.taskName')}"></div>` : `<button class="addrow" data-a="startComposer" data-ctx="${key}" data-group="${g.key}" data-gb="${esc(JSON.stringify(g.set || {}))}">${ic('plus', 14)}${tt('common.addTask')}</button>`}`;
       })
       .join('')}
   </div>${bulkBar(all)}`;
