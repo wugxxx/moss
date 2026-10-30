@@ -677,7 +677,7 @@ async function storeFormFiles(form) {
 
 /* inline composer */
 A.startComposer = el => {
-  S.ui.composer = { ctx: el.dataset.ctx, group: el.dataset.group, gb: JSON.parse(el.dataset.gb || '{}') };
+  S.ui.composer = { ctx: el.dataset.ctx, group: el.dataset.group, gb: JSON.parse(el.dataset.gb || '{}'), draft: '' };
   S.ui.pop = null;
   render();
   setTimeout(() => $('#composer-in')?.focus(), 0);
@@ -690,20 +690,42 @@ KEY.commitComposer = () => A.commitComposer();
 A.commitComposer = () => {
   const c = S.ui.composer;
   const el = $('#composer-in');
-  const v = el?.value.trim();
+  const v = String(el?.value ?? c?.draft ?? '').trim();
   if (!c) return;
   if (!v) {
     A.cancelComposer();
     return;
   }
   const f = { title: v, ...c.gb };
-  f.project = f.project || projectFromKey(c.ctx) || curProjectId() || 'p1';
+  f.project = f.project || projectFromKey(c.ctx) || curProjectId() || visibleProjects().find(p => p.status !== 'complete')?.id;
   if (c.ctx === 'mytasks') f.assignee = D().me;
-  void runCommand('task.create', { ...f, projectId: f.project }).then(result => {
-    if (!result) return;
-    A.cancelComposer();
+  if (!f.project) {
+    c.draft = v;
+    render();
     setTimeout(() => $('#composer-in')?.focus(), 0);
+    toast(tr('toast.chooseProject'), { kind: 'err' });
+    return;
+  }
+  void runCommand('task.create', { ...f, projectId: f.project }, null, { render: false }).then(result => {
+    if (!result) {
+      c.draft = v;
+      render();
+      const input = $('#composer-in');
+      input?.focus();
+      input?.setSelectionRange(v.length, v.length);
+      return;
+    }
+    fxSet({ added: result.affected.ids[0] });
+    A.cancelComposer();
+    toast(tr('toast.taskCreated'), {
+      action: tr('common.open'),
+      onAction: () => A.openTask({ dataset: { id: result.affected.ids[0] } }),
+      ms: 2400,
+    });
   });
+};
+IN.composer = el => {
+  if (S.ui.composer) S.ui.composer.draft = el.value;
 };
 KEY.commitTitle = el => DBL._commitTitle(el);
 DBL.editTitle = el => {

@@ -159,6 +159,9 @@ document.addEventListener('keydown', e => {
     }
   }
   if (e.key === 'Enter' && !e.shiftKey && t.dataset?.keyEnter) {
+    // Enter also confirms an IME candidate. Let the input method finish first
+    // instead of submitting the composer with a partial or empty draft.
+    if (e.isComposing || e.keyCode === 229) return;
     e.preventDefault();
     KEY[t.dataset.keyEnter]?.(t);
     return;
