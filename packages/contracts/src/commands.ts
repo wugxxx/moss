@@ -5,6 +5,7 @@ import type {
   FileRecord,
   IsoDate,
   IsoTimestamp,
+  LabelDefinition,
   Member,
   Project,
   SavedView,
@@ -221,6 +222,28 @@ export type EventCommand =
 
 export type MemberPatch = Partial<Pick<Member, 'name' | 'title' | 'email' | 'role' | 'team' | 'tz' | 'c'>>;
 
+export type LabelPatch = Partial<Pick<LabelDefinition, 'name' | 'color'>>;
+
+export type LabelCommand =
+  | (CommandContext & {
+      type: 'label.create';
+      payload: { label: LabelDefinition };
+    })
+  | (CommandContext & {
+      type: 'label.patch';
+      entityId: EntityId;
+      payload: { patch: LabelPatch };
+    })
+  | (CommandContext & {
+      type: 'label.delete';
+      entityId: EntityId;
+      payload: Record<string, never>;
+    })
+  | (CommandContext & {
+      type: 'label.reorder';
+      payload: { orderedIds: EntityId[] };
+    });
+
 export type WorkspaceCommand =
   | TaskCommand
   | ProjectCommand
@@ -228,6 +251,7 @@ export type WorkspaceCommand =
   | SavedViewCommand
   | CommentCommand
   | EventCommand
+  | LabelCommand
   | (CommandContext & {
       type: 'member.patch';
       entityId: EntityId;

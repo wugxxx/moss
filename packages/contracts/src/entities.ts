@@ -27,6 +27,12 @@ export interface Attachment {
   storageKey?: string | null;
 }
 
+export interface LabelDefinition {
+  id: EntityId;
+  name: string;
+  color: string;
+}
+
 export interface Task {
   id: EntityId;
   project: EntityId;
@@ -154,6 +160,7 @@ export interface WorkspaceSnapshot {
   members: Member[];
   projects: Project[];
   tasks: Task[];
+  labels: LabelDefinition[];
   comments: Comment[];
   activity: Activity[];
   notifs: Array<Record<string, unknown>>;

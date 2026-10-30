@@ -1,4 +1,5 @@
 import type { Project, Task, WorkspaceSnapshot } from '@moss/contracts';
+import { normalizeLabelDefinitions } from '@moss/contracts';
 
 function finiteRevision(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
@@ -33,11 +34,17 @@ function normalizeProject(project: Project): Project {
  */
 export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapshot {
   const copy = structuredClone(snapshot);
+  const labels = normalizeLabelDefinitions(copy.labels);
+  const labelIds = new Set(labels.map(label => label.id));
   return {
     ...copy,
     members: copy.members ?? [],
     projects: (copy.projects ?? []).map(normalizeProject),
-    tasks: (copy.tasks ?? []).map(normalizeTask),
+    tasks: (copy.tasks ?? []).map(task => ({
+      ...normalizeTask(task),
+      labels: (task.labels ?? []).filter(id => labelIds.has(id)),
+    })),
+    labels,
     comments: copy.comments ?? [],
     activity: copy.activity ?? [],
     notifs: copy.notifs ?? [],
@@ -51,7 +58,14 @@ export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapsho
       notes: event.notes ?? '',
     })),
     projOrder: copy.projOrder ?? [],
-    savedViews: copy.savedViews ?? [],
+    savedViews: (copy.savedViews ?? []).map(view => ({
+      ...view,
+      filters: view.filters.flatMap(filter => {
+        if (filter.f !== 'labels') return [filter];
+        const values = filter.v.filter(id => labelIds.has(id));
+        return values.length ? [{ ...filter, v: values }] : [];
+      }),
+    })),
     recentSearches: copy.recentSearches ?? [],
     sessions: copy.sessions ?? [],
     invoices: copy.invoices ?? [],

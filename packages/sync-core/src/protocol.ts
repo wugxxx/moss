@@ -77,6 +77,7 @@ export interface SyncWorkspaceValue {
   invoices?: Array<Record<string, unknown>>;
   tfa?: boolean;
   notifPrefs?: Record<string, boolean>;
+  labels?: Array<{ id: string; name: string; color: string }>;
 }
 
 interface SyncChangeBase {

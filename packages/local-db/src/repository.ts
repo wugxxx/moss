@@ -96,6 +96,7 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
       invoices?: Array<Record<string, unknown>>;
       tfa?: boolean;
       notifPrefs?: Record<string, boolean>;
+      labels?: unknown;
     };
     const settings = new Map(
       (this.db.prepare('SELECT kind, data FROM workspace_settings WHERE workspace_id = ?').all(this.workspaceId) as unknown as SettingsRow[]).map(setting => [
@@ -126,6 +127,7 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
       members: this.rows('members').map(row => parseRow<Member>(row as unknown as EntityRow)),
       projects,
       tasks,
+      labels: (settings.get('labels') ?? metadata.labels ?? []) as WorkspaceSnapshot['labels'],
       comments: this.rows('comments').map(row => parseRow<Comment>(row as unknown as EntityRow)),
       activity: this.rows('activity').map(row => parseRow<Activity>(row as unknown as EntityRow)),
       notifs: settings.get('notifs') ?? metadata.notifs ?? [],
@@ -367,6 +369,7 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
       ['projOrder', snapshot.projOrder],
       ['recentSearches', snapshot.recentSearches],
       ['notifPrefs', snapshot.notifPrefs],
+      ['labels', snapshot.labels],
     ];
     const upsert = this.db.prepare(
       `INSERT INTO workspace_settings (workspace_id, kind, data, updated_at)
@@ -476,6 +479,9 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
     }
     if (value.notifPrefs !== undefined) {
       this.writeRemoteSetting('notifPrefs', value.notifPrefs, at);
+    }
+    if (value.labels !== undefined) {
+      this.writeRemoteSetting('labels', value.labels, at);
     }
   }
 

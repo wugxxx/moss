@@ -3,8 +3,9 @@
 **English** · [简体中文](README.zh-CN.md)
 
 A calm, local-first project management workspace for solo work: home dashboard, tasks, projects
-with editable schedules and milestones, overview / board / list / table / calendar / timeline /
-files views, calendar events, favorites, archive, global search and settings. The first release is
+with editable schedules and milestones, configurable workspace labels, overview / board / list /
+table / calendar / timeline / files views, calendar events, favorites, archive, global search and
+settings. The first release is
 available in English and Simplified Chinese (`zh-CN`), and treats task and event dates as local
 calendar dates without time-zone conversion.
 

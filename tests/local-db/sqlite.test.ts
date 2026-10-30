@@ -120,6 +120,25 @@ describe('SQLite workspace store', () => {
     second.db.close();
   });
 
+  it('persists workspace labels across a database reopen', async () => {
+    const path = databasePath();
+    const first = createClient(path);
+    const created = await first.client.execute({
+      ...commandContext(first.repository.workspaceId),
+      type: 'label.create',
+      payload: { label: { id: 'customer', name: 'Customer feedback', color: 'rose' } },
+    });
+    expect(created.ok).toBe(true);
+    first.db.close();
+
+    const second = createClient(path);
+    expect(second.client.snapshot().labels.find(label => label.id === 'customer')).toMatchObject({
+      name: 'Customer feedback',
+      color: 'rose',
+    });
+    second.db.close();
+  });
+
   it('persists attachment storage metadata across a database reopen', async () => {
     const path = databasePath();
     const first = createClient(path);

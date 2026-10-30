@@ -67,6 +67,98 @@
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
+.label-manager-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.label-manager-head > div {
+  min-width: 0;
+  flex: 1;
+}
+.label-manager-head h2 {
+  border: 0;
+  padding: 0;
+  margin: 0 0 3px;
+}
+.label-manager-head .hint {
+  margin: 0;
+}
+.label-list {
+  display: flex;
+  flex-direction: column;
+}
+.label-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.label-row:last-child {
+  border-bottom: 0;
+}
+.label-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--c) 13%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 24%, transparent);
+}
+.label-swatch i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--c);
+}
+.label-name {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.label-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+.label-row-actions .danger {
+  color: var(--red);
+}
+.label-row-actions .danger:hover {
+  background: var(--red-soft);
+}
+.label-empty {
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text-3);
+  text-align: center;
+  border-bottom: 1px solid var(--divider);
+}
+.label-empty b {
+  color: var(--text);
+  font-size: var(--fs-sm);
+}
+.label-empty span {
+  max-width: 340px;
+  font-size: var(--fs-sm);
+}
+@media (max-width: 640px) {
+  .label-manager-head {
+    flex-direction: column;
+  }
+  .label-row-actions {
+    gap: 0;
+  }
+}
 .themecards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

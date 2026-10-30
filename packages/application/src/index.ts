@@ -3,6 +3,7 @@ import type {
   CommandResult,
   EntityId,
   FileRecord,
+  LabelDefinition,
   Project,
   ProjectTaskCreateInput,
   ProjectPatch,
@@ -12,7 +13,7 @@ import type {
   WorkspaceCommand,
   WorkspaceSnapshot,
 } from '@moss/contracts';
-import { createEntityId } from '@moss/contracts';
+import { createEntityId, LABEL_COLOR_IDS } from '@moss/contracts';
 import { nextRecurringTask, normalizeTaskDates, projectKey, taskOrder } from '@moss/domain';
 
 export interface WorkspaceCommitContext {
@@ -55,6 +56,29 @@ function projectById(snapshot: WorkspaceSnapshot, id: EntityId): Project {
   const project = snapshot.projects.find(item => item.id === id);
   if (!project) throw new Error(`Project ${id} was not found`);
   return project;
+}
+
+function labelColor(value: string): string {
+  return LABEL_COLOR_IDS.includes(value as (typeof LABEL_COLOR_IDS)[number]) ? value : 'gray';
+}
+
+function assertUniqueLabelName(snapshot: WorkspaceSnapshot, name: string, exceptId: EntityId | null = null): void {
+  const normalized = name.trim().toLocaleLowerCase();
+  if (snapshot.labels.some(label => label.id !== exceptId && label.name.trim().toLocaleLowerCase() === normalized)) {
+    throw new Error(`Label “${name.trim()}” already exists`);
+  }
+}
+
+function normalizeLabel(label: LabelDefinition): LabelDefinition {
+  const id = label.id.trim();
+  const name = label.name.trim();
+  if (!id) throw new Error('Label id is required');
+  if (!name) throw new Error('Label name is required');
+  return {
+    id,
+    name,
+    color: labelColor(label.color),
+  };
 }
 
 function isIsoDate(value: string): boolean {
@@ -574,6 +598,58 @@ export class WorkspaceApplication {
         snapshot.projects = snapshot.projects.filter(item => item.id !== project.id);
         snapshot.projOrder = snapshot.projOrder.filter(id => id !== project.id);
         return { type: 'project', ids: [project.id] };
+      }
+      case 'label.create': {
+        const label = normalizeLabel(command.payload.label);
+        if (snapshot.labels.some(item => item.id === label.id)) throw new Error(`Label ${label.id} already exists`);
+        assertUniqueLabelName(snapshot, label.name);
+        snapshot.labels.push(label);
+        return { type: 'workspace', ids: [label.id] };
+      }
+      case 'label.patch': {
+        const index = snapshot.labels.findIndex(label => label.id === command.entityId);
+        if (index < 0) throw new Error(`Label ${command.entityId} was not found`);
+        const previous = snapshot.labels[index]!;
+        const next = normalizeLabel({
+          ...previous,
+          ...command.payload.patch,
+          id: previous.id,
+        });
+        assertUniqueLabelName(snapshot, next.name, previous.id);
+        snapshot.labels[index] = next;
+        return { type: 'workspace', ids: [next.id] };
+      }
+      case 'label.delete': {
+        const exists = snapshot.labels.some(label => label.id === command.entityId);
+        if (!exists) throw new Error(`Label ${command.entityId} was not found`);
+        snapshot.labels = snapshot.labels.filter(label => label.id !== command.entityId);
+        snapshot.tasks = snapshot.tasks.map(task => {
+          if (!task.labels.includes(command.entityId)) return task;
+          return touchTask({
+            ...task,
+            labels: task.labels.filter(id => id !== command.entityId),
+          });
+        });
+        snapshot.savedViews = snapshot.savedViews.map(view => ({
+          ...view,
+          filters: view.filters.flatMap(filter => {
+            if (filter.f !== 'labels' || !filter.v.includes(command.entityId)) return [filter];
+            const values = filter.v.filter(id => id !== command.entityId);
+            return values.length ? [{ ...filter, v: values }] : [];
+          }),
+        }));
+        return { type: 'workspace', ids: [command.entityId] };
+      }
+      case 'label.reorder': {
+        const byId = new Map(snapshot.labels.map(label => [label.id, label]));
+        const ordered = command.payload.orderedIds.flatMap(id => {
+          const label = byId.get(id);
+          if (!label) return [];
+          byId.delete(id);
+          return [label];
+        });
+        snapshot.labels = [...ordered, ...byId.values()];
+        return { type: 'workspace', ids: command.payload.orderedIds };
       }
       case 'event.create': {
         const event = normalizeEvent(command.payload.event);

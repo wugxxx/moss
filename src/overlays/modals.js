@@ -1,7 +1,7 @@
 /* ---------------- MODALS ---------------- */
 import { $$, MOD, ago, esc, fmtDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { PCOLORS, PICONS } from '../core/constants.js';
+import { LABEL_COLORS, PCOLORS, PICONS } from '../core/constants.js';
 import { D, S, pColor, proj, task } from '../core/store.js';
 import { FT, filePrev, lbl, prPill, stPill } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
@@ -34,6 +34,8 @@ export function modalHtml(m) {
       return wrap('', taskModal(m, H));
     case 'project':
       return wrap('', projectModal(m, H));
+    case 'label':
+      return wrap('sm', labelModal(m, H));
     case 'event':
       return wrap('', eventModal(m, H));
     case 'confirm':
@@ -57,6 +59,19 @@ export function modalHtml(m) {
 }
 export function formChip(pop, html, label) {
   return `<button class="pillbtn bordered" data-a="pop" data-pop="${pop}" data-id="__form" ${pop === 'date' ? `data-field="${label}"` : ''} aria-label="${esc(label)}">${html}</button>`;
+}
+function labelModal(m, H) {
+  const f = S.ui.lform;
+  const err = S.ui.errors.labelName;
+  const color = LABEL_COLORS.find(item => item.id === f.color) || LABEL_COLORS[0];
+  const preview = f.name.trim() || tr('common.labels');
+  return `${H(m.editId ? tr('modals.editLabel') : tr('modals.newLabel'), tr('modals.labelHelp'))}
+  <form class="modal-b" data-submit="submitLabel">
+    <div class="field"><label class="label" for="label-name">${tr('modals.labelName')}</label><input class="input ${err ? 'is-error' : ''}" id="label-name" data-in="lform" data-f="name" value="${esc(f.name)}" placeholder="${tr('modals.labelNamePlaceholder')}" autofocus aria-invalid="${!!err}" maxlength="40">${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
+    <div class="field"><span class="label">${tr('modals.labelColor')}</span><div class="swatches" role="radiogroup" aria-label="${tr('modals.labelColor')}">${LABEL_COLORS.map(item => `<button type="button" role="radio" aria-checked="${f.color === item.id}" class="sw ${f.color === item.id ? 'on' : ''}" style="--c:${item.c};width:22px;height:22px" data-a="lformSet" data-f="color" data-v="${item.id}" aria-label="${tr(`settings.labelColors.${item.id}`)}">${f.color === item.id ? ic('check', 12) : ''}</button>`).join('')}</div></div>
+    <div class="field"><span class="label">${tr('modals.labelPreview')}</span><div><span class="lbl" style="--c:${color.c}"><i></i>${esc(preview)}</span></div></div>
+  </form>
+  <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">${tr('common.cancel')}</button><button class="btn btn-primary" data-a="submitLabel">${m.editId ? tr('modals.saveLabel') : tr('modals.createLabel')}</button></div>`;
 }
 export function taskModal(m, H) {
   const f = S.ui.form;
