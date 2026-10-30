@@ -17,7 +17,7 @@ export function renderLayer() {
   const u = S.ui;
   let h = '';
   if (u.drawer && task(u.drawer))
-    h += (u.drawerFull ? `<div class="drawer-scrim full${u.fx.drawer ? ' enter' : ''}" data-a="closeDrawer"></div>` : '') + drawerHtml(task(u.drawer));
+    h += `<div class="drawer-scrim${u.drawerFull ? ' full' : ''}${u.fx.drawer ? ' enter' : ''}" data-a="closeDrawer"></div>` + drawerHtml(task(u.drawer));
   u.modals.forEach((m, i) => {
     const en = u.fx.modal === i + 1;
     h += `<div class="scrim${en ? ' enter' : ''}" data-a="closeModal" style="z-index:${60 + i * 2}"></div><div class="modal-wrap" data-a="closeModalBg" style="z-index:${61 + i * 2}">${en ? modalHtml(m).replace('class="modal ', 'class="modal enter ') : modalHtml(m)}</div>`;

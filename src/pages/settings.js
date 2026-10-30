@@ -23,7 +23,6 @@ export const SET_NAV = [
   [
     'settings.work',
     [
-      ['projects', 'settings.projectsDefaults', 'folder-kanban'],
       ['labels', 'settings.labels', 'tag'],
       ['archive', 'archive.title', 'archive'],
       ['preferences', 'settings.preferences', 'sliders-horizontal'],
@@ -173,28 +172,6 @@ export function settingsBody(sec, title) {
           ),
         )
       );
-    case 'projects': {
-      return (
-        H(t('settings.projectsLead')) +
-        srow(
-          t('settings.defaultProjectView'),
-          t('settings.defaultProjectViewHelp'),
-          sel(
-            'defaultTab',
-            [
-              ['overview', t('project.overview')],
-              ['board', t('project.board')],
-              ['list', t('project.list')],
-              ['table', t('project.table')],
-              ['calendar', t('project.calendar')],
-              ['timeline', t('project.timeline')],
-              ['files', t('project.files')],
-            ],
-            P.defaultTab || 'board',
-          ),
-        )
-      );
-    }
     case 'labels':
       return labelsSettings(title);
     case 'archive':
@@ -225,6 +202,23 @@ export function settingsBody(sec, title) {
               ['full', t('settings.fullPage')],
             ],
             P.openTasks,
+          ),
+        ) +
+        srow(
+          t('settings.defaultProjectView'),
+          t('settings.defaultProjectViewHelp'),
+          sel(
+            'defaultTab',
+            [
+              ['overview', t('project.overview')],
+              ['board', t('project.board')],
+              ['list', t('project.list')],
+              ['table', t('project.table')],
+              ['calendar', t('project.calendar')],
+              ['timeline', t('project.timeline')],
+              ['files', t('project.files')],
+            ],
+            P.defaultTab || 'board',
           ),
         ) +
         srow(t('settings.confirmBeforeDelete'), '', tog('confirmDel', P.confirmDel !== false))
