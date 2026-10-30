@@ -50,7 +50,7 @@ export function setDateFormat(f) {
 }
 export function fmtDate(s, long) {
   const d = typeof s === 'string' ? parse(s) : s;
-  if (!d) return '';
+  if (!(d instanceof Date) || Number.isNaN(d.getTime())) return '';
   const fmt = dateFormat;
   if (fmt === 'd/M') return `${d.getDate()}/${d.getMonth() + 1}${long ? '/' + d.getFullYear() : ''}`;
   if (fmt === 'M/d') return `${d.getMonth() + 1}/${d.getDate()}${long ? '/' + d.getFullYear() : ''}`;
@@ -80,16 +80,22 @@ export function fmtDateTime(value, timeFormat = '12') {
   })}`;
 }
 export function ago(ts) {
-  const m = Math.round((Date.now() - ts) / 6e4);
+  let value = ts;
+  if (value instanceof Date) value = value.getTime();
+  else if (typeof value === 'string' && value.trim()) {
+    const numeric = Number(value);
+    value = Number.isFinite(numeric) ? numeric : Date.parse(value);
+  }
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '';
+  const m = Math.round((Date.now() - value) / 6e4);
   if (m < 1) return t('time.justNow');
   if (m < 60) return t('time.minutesAgo', { count: m });
   const h = Math.round(m / 60);
   if (h < 24) return t('time.hoursAgo', { count: h });
   const d = Math.round(h / 24);
   if (d < 7) return t('time.daysAgo', { count: d });
-  return fmtDate(iso(new Date(ts)));
+  return fmtDate(iso(new Date(value)));
 }
-export const minsAgo = m => Date.now() - m * 6e4;
 export function dayBucket(ts) {
   const n = diffD(new Date(ts), TODAY);
   if (n === 0) return t('time.today');
