@@ -609,7 +609,7 @@ A.submitTask = async () => {
     return;
   }
   const fileCount = files.length;
-  S.ui.modals.pop();
+  if (!f.more) S.ui.modals.pop();
   S.ui.taskSaving = false;
   void runCommand('task.create', {
     ...base,
@@ -624,7 +624,8 @@ A.submitTask = async () => {
     const id = result.affected.ids[0];
     if (f.more) {
       Object.assign(f, { title: '', desc: '', subtasks: [], files: [] });
-      setTimeout(() => $('#f-title')?.focus(), 0);
+      render();
+      $('#f-title')?.focus();
       toast(fileCount && !workspace.attachments ? tr('toast.taskCreatedMetadata') : tr('toast.taskCreated'), { ms: 2600 });
       return;
     }
