@@ -73,7 +73,7 @@ export function paletteItems() {
     }
     if (cmds.length) groups.push({ name: tr('palette.commands'), items: cmds.slice(0, 5) });
   }
-  const r = searchAll(q);
+  const r = searchAll(q, false);
   const sc = pl.mode === 'search' ? pl.scope : 'all';
   const lim = sc === 'all' ? 4 : 12;
   if (pl.mode === 'search' && !q) {
@@ -145,6 +145,7 @@ export function paletteItems() {
         run: () => {
           S.ui.searchQ = q;
           S.ui.searchCat = sc;
+          S.ui.searchArchived = false;
           void runCommand('recentSearch.add', { query: q, limit: 5 }, null, { render: false });
           go('search');
         },

@@ -97,6 +97,34 @@ describe('MemoryWorkspaceClient', () => {
     expect(await client.query({ type: 'tasks.list' })).toHaveLength(1);
   });
 
+  it('hides an archived project and its tasks without changing task archive state', async () => {
+    const snapshot = snapshotFixture();
+    snapshot.tasks = [taskFixture({ id: 'task-active', key: 'PRJ-201' }), taskFixture({ id: 'task-archived', key: 'PRJ-202', archived: true })];
+    const client = new MemoryWorkspaceClient(snapshot);
+
+    const archivedProject = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'project.archive',
+      entityId: 'project-1',
+      payload: {},
+    });
+    expect(archivedProject.ok).toBe(true);
+    expect(await client.query({ type: 'tasks.list' })).toHaveLength(0);
+    expect(await client.query({ type: 'tasks.list', options: { includeArchived: true } })).toHaveLength(2);
+    expect(client.snapshot().tasks.find(task => task.id === 'task-active')?.archived).not.toBe(true);
+
+    const restoredProject = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'project.restore',
+      entityId: 'project-1',
+      payload: {},
+    });
+    expect(restoredProject.ok).toBe(true);
+    const activeTasks = (await client.query({ type: 'tasks.list' })) as Task[];
+    expect(activeTasks.map(task => task.id)).toEqual(['task-active']);
+    expect(client.snapshot().tasks.find(task => task.id === 'task-archived')?.archived).toBe(true);
+  });
+
   it('creates projects with an editable schedule and milestones', async () => {
     const client = new MemoryWorkspaceClient(snapshotFixture());
     const created = await client.execute({

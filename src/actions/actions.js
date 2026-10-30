@@ -1578,10 +1578,11 @@ A.dupProject = el => {
 };
 A.archiveProject = el => {
   const p = proj(el.dataset.id);
+  const taskCount = D().tasks.filter(t => t.project === p.id).length;
   S.ui.pop = null;
   confirmDlg({
     title: tr('toast.archiveProjectQuestion', { project: p.name }),
-    body: tr('modals.archiveProjectBody'),
+    body: tr('modals.archiveProjectBody', { project: p.name, count: taskCount }),
     ok: tr('modals.archiveProject'),
     icon: 'archive',
     run: () => {
@@ -1765,6 +1766,10 @@ A.setSearch = el => {
   S.ui.searchQ = el.dataset.q;
   render();
   $('#search-page-q')?.focus();
+};
+IN.searchArchived = el => {
+  S.ui.searchArchived = el.checked;
+  render();
 };
 
 A.shortcuts = () => {

@@ -2,6 +2,7 @@ import type { EntityId, Project, Task, WorkspaceSnapshot } from './entities.js';
 
 export interface TaskListOptions {
   projectId?: EntityId;
+  /** Include tasks archived directly or through an archived parent project. */
   includeArchived?: boolean;
 }
 
