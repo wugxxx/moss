@@ -953,6 +953,7 @@ export default {
     movedTaskToStatus: 'Moved “{title}” to {status}',
     sortedManually: 'Sorted manually to keep your order',
     rescheduledTask: 'Rescheduled “{title}” to {date}',
+    rescheduledEvent: 'Rescheduled event “{title}” to {date}',
     movedTaskDays: { one: 'Moved “{title}” {count} day {direction}', other: 'Moved “{title}” {count} days {direction}' },
     earlier: 'earlier',
     later: 'later',

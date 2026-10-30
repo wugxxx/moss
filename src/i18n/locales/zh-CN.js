@@ -951,6 +951,7 @@ export default {
     movedTaskToStatus: '已将“{title}”移至“{status}”',
     sortedManually: '已切换为手动排序，以保留你的拖拽顺序',
     rescheduledTask: '已将“{title}”改期至 {date}',
+    rescheduledEvent: '已将日程“{title}”改期至 {date}',
     movedTaskDays: { one: '已将“{title}”{direction} {count} 天', other: '已将“{title}”{direction} {count} 天' },
     earlier: '提前',
     later: '顺延',

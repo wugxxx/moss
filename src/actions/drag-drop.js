@@ -18,17 +18,20 @@ export function clearDropMarks() {
 document.addEventListener('dragstart', e => {
   const card = e.target.closest?.('[data-drag-card]'),
     row = e.target.closest?.('[data-drag-row]'),
+    ev = e.target.closest?.('[data-drag-event]'),
     cal = e.target.closest?.('[data-drag-cal]'),
     sp = e.target.closest?.('[data-drag-proj]');
-  const el = card || row || cal || sp;
+  const el = card || row || ev || cal || sp;
   if (!el) return;
   DRAG = card
     ? { type: 'card', id: card.dataset.dragCard }
     : row
       ? { type: 'row', id: row.dataset.dragRow }
-      : cal
-        ? { type: 'cal', id: cal.dataset.dragCal }
-        : { type: 'proj', id: sp.dataset.dragProj };
+      : ev
+        ? { type: 'event', id: ev.dataset.dragEvent }
+        : cal
+          ? { type: 'cal', id: cal.dataset.dragCal }
+          : { type: 'proj', id: sp.dataset.dragProj };
   e.dataTransfer.effectAllowed = 'move';
   try {
     e.dataTransfer.setData('text/plain', DRAG.id);
@@ -95,7 +98,7 @@ document.addEventListener('dragover', e => {
     DRAG.pos = before ? 'before' : 'after';
     DRAG.group = row.dataset.group;
     DRAG.lkey = row.dataset.lkey;
-  } else if (DRAG.type === 'cal') {
+  } else if (DRAG.type === 'cal' || DRAG.type === 'event') {
     const day = e.target.closest('[data-drop-day]');
     if (!day) return;
     e.preventDefault();
@@ -177,6 +180,12 @@ document.addEventListener('drop', e => {
     }
     void runCommand('task.move', { order, ...patch }, t.id).then(result => {
       if (result && switched) toast(tr('toast.sortedManually'), { kind: 'info', ms: 2200 });
+    });
+  } else if (d.type === 'event' && d.day) {
+    const event = D().events.find(item => item.id === d.id);
+    if (!event || event.date === d.day) return;
+    void runCommand('event.patch', { patch: { date: d.day } }, event.id).then(result => {
+      if (result) toast(tr('toast.rescheduledEvent', { title: event.title, date: fmtDate(d.day) }), { ms: 2200 });
     });
   } else if (d.type === 'cal' && d.day) {
     const t = task(d.id);

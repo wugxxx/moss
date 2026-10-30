@@ -24,7 +24,7 @@ complete.
       and key-parity tests are already in place.
 - [ ] Add time-zone conversion. First-release task, project, and event dates use
       local calendar-date semantics.
-- [ ] Add event drag-and-drop, multi-day events, recurrence, and reminders.
+- [ ] Add multi-day events, recurrence, and reminders.
 
 ## Hosted API and database
 
