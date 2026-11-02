@@ -114,6 +114,47 @@ export function makeFocusable() {
     if (!el.hasAttribute('role')) el.setAttribute('role', el.dataset.a === 'go' ? 'link' : 'button');
   }
 }
+function nodePath(root, node) {
+  if (!root.contains(node)) return null;
+  const path = [];
+  let current = node;
+  while (current && current !== root) {
+    const parent = current.parentNode;
+    if (!parent) return null;
+    path.unshift(Array.prototype.indexOf.call(parent.childNodes, current));
+    current = parent;
+  }
+  return current === root ? path : null;
+}
+function nodeAtPath(root, path) {
+  let node = root;
+  for (const index of path) {
+    node = node?.childNodes?.[index];
+    if (!node) return null;
+  }
+  return node;
+}
+function captureRichTextSelection(editor) {
+  const selection = window.getSelection?.();
+  if (!selection?.rangeCount) return null;
+  const range = selection.getRangeAt(0);
+  const startPath = nodePath(editor, range.startContainer);
+  const endPath = nodePath(editor, range.endContainer);
+  return startPath && endPath ? { startPath, startOffset: range.startOffset, endPath, endOffset: range.endOffset } : null;
+}
+function restoreRichTextSelection(editor, saved) {
+  if (!saved) return;
+  const start = nodeAtPath(editor, saved.startPath);
+  const end = nodeAtPath(editor, saved.endPath);
+  if (!start || !end) return;
+  const maxOffset = node => (node.nodeType === 3 ? node.nodeValue.length : node.childNodes.length);
+  const range = document.createRange();
+  range.setStart(start, Math.min(saved.startOffset, maxOffset(start)));
+  range.setEnd(end, Math.min(saved.endOffset, maxOffset(end)));
+  const selection = window.getSelection?.();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+}
 export function render() {
   applyPrefs();
   const prevOv = render._ov || {};
@@ -129,6 +170,10 @@ export function render() {
   render._selN = S.ui.sel.size;
   const a = document.activeElement;
   const fid = a && a.id;
+  const activeEditor = a?.closest?.('[data-rte]');
+  if (activeEditor) S.ui.descDrafts.set(activeEditor.dataset.rte, activeEditor.innerHTML);
+  const editorSelection = activeEditor ? captureRichTextSelection(activeEditor) : null;
+  const editorId = activeEditor?.id;
   let s0 = null,
     s1 = null;
   const fkey = focusKey(a);
@@ -153,10 +198,13 @@ export function render() {
     const el = document.getElementById(fid);
     if (el && el !== document.activeElement) {
       el.focus({ preventScroll: true });
-      try {
-        if (s0 != null) el.setSelectionRange(s0, s1);
-      } catch {
-        /* not supported here; safe to skip */
+      if (fid === editorId) restoreRichTextSelection(el, editorSelection);
+      else {
+        try {
+          if (s0 != null) el.setSelectionRange(s0, s1);
+        } catch {
+          /* not supported here; safe to skip */
+        }
       }
     }
   }

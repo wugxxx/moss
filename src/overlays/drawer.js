@@ -31,6 +31,7 @@ export function renderLayer() {
 export function drawerHtml(t) {
   const p = proj(t.project);
   const u = S.ui;
+  const desc = u.descDrafts?.get(t.id) ?? t.desc;
   const sd = t.subtasks.filter(s => s.done).length;
   const prop = (icon, label, val) => `<dt>${ic(icon, 14)}${label}</dt><dd>${val}</dd>`;
   const ups = (u.uploads || []).filter(x => x.task === t.id);
@@ -76,7 +77,7 @@ export function drawerHtml(t) {
             .map(([c, i, n]) => `<button class="ibtn ibtn-xs" data-cmd="${c}" data-tip="${n}" aria-label="${n}">${ic(i, 13)}</button>`)
             .join('')}
         </div></div>
-        <div class="rte"><div class="rte-body" id="d-desc" contenteditable="true" data-rte="${t.id}" data-ph="${tr('drawer.addDescription')}" role="textbox" aria-multiline="true" aria-labelledby="d-desc-l">${t.desc}</div></div>
+        <div class="rte"><div class="rte-body" id="d-desc" contenteditable="true" data-rte="${t.id}" data-ph="${tr('drawer.addDescription')}" role="textbox" aria-multiline="true" aria-labelledby="d-desc-l">${desc}</div></div>
       </div>
 
       <div class="dsec"><div class="dsec-h"><h3>${tr('common.subtasks')}</h3><span class="cnt num">${sd}/${t.subtasks.length}</span>${t.subtasks.length ? `<span style="width:90px;display:flex">${progBar(Math.round((sd / t.subtasks.length) * 100), sd === t.subtasks.length ? 'green' : '')}</span>` : ''}</div>

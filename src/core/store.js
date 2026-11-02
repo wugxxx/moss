@@ -52,6 +52,7 @@ export const S = {
     taskSaving: false,
     pop: null,
     palette: null,
+    descDrafts: new Map(),
     loading: false,
     sel: new Set(),
     composer: null,

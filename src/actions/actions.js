@@ -1004,12 +1004,14 @@ document.addEventListener('input', e => {
 
 const descriptionSaveTimers = new Map();
 function scheduleDescriptionSave(taskId, desc) {
+  S.ui.descDrafts.set(taskId, desc);
   clearTimeout(descriptionSaveTimers.get(taskId));
   descriptionSaveTimers.set(
     taskId,
-    setTimeout(() => {
+    setTimeout(async () => {
       descriptionSaveTimers.delete(taskId);
-      void runCommand('task.patch', { patch: { desc } }, taskId, { render: false });
+      const result = await runCommand('task.patch', { patch: { desc } }, taskId, { render: false });
+      if (result && S.ui.descDrafts.get(taskId) === desc) S.ui.descDrafts.delete(taskId);
     }, 500),
   );
 }
