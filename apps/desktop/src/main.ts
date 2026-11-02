@@ -1,7 +1,7 @@
 import { join, sep } from 'node:path';
 import { stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, screen, session, shell } from 'electron';
 import type { WorkspaceCommand, WorkspaceQuery, WorkspaceSnapshot } from '@moss/contracts';
 import type { CommandResult } from '@moss/contracts';
 import { HttpSyncTransport, type SaveAttachmentInput } from '@moss/client';
@@ -12,6 +12,7 @@ import { IPC_CHANNELS } from './channels.js';
 
 let workspace: SqliteWorkspace | undefined;
 let attachmentStore: AttachmentStore | undefined;
+const WINDOW_VERTICAL_OFFSET = 48;
 
 app.setName('Moss');
 
@@ -148,6 +149,10 @@ async function createWindow(): Promise<void> {
 
   window.once('ready-to-show', () => {
     window.center();
+    const bounds = window.getBounds();
+    const { workArea } = screen.getDisplayMatching(bounds);
+    const maxY = Math.max(workArea.y, workArea.y + workArea.height - bounds.height);
+    window.setPosition(bounds.x, Math.min(bounds.y + WINDOW_VERTICAL_OFFSET, maxY), false);
     window.show();
   });
   window.webContents.on('will-attach-webview', event => event.preventDefault());
