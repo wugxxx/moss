@@ -91,7 +91,7 @@ export function renderSidebar() {
             const on = inProj === p.id;
             return `<div class="sproj" data-proj-drop="${p.id}">
             <div class="sitem ${on ? 'on' : ''}" draggable="true" data-drag-proj="${p.id}" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project" role="link" tabindex="0" ${u.collapsed ? `data-tip="${esc(p.name)}" data-tip-pos="right"` : ''}>
-              <span class="pico" style="--c:${pColor(p)}" data-a="toggleExpand" data-id="${p.id}" aria-label="${t('nav.toggleSubPages')}">${ic(p.icon, 12)}</span>
+              <span class="pico" style="--c:${pColor(p)}" ${u.collapsed ? '' : `data-a="toggleExpand" data-id="${p.id}" aria-label="${t('nav.toggleSubPages')}"`}>${ic(p.icon, 12)}</span>
               <span class="trunc">${esc(p.name)}</span>
               ${p.fav ? `<span class="fav">${ic('star', 11)}</span>` : ''}
               <span class="sdot" style="background:${PSTAT[p.status].c}" title="${PSTAT[p.status].name}"></span>
