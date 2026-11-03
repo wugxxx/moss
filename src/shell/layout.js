@@ -4,6 +4,7 @@ import { ic, wsLogo } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
 import { D, S, allTasks, pColor, proj, visibleProjects } from '../core/store.js';
 import { av } from '../ui/helpers.js';
+import { SIDE_MAX, SIDE_MIN, sideWidth } from '../core/theme.js';
 import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
 import { pageHome } from '../pages/home.js';
@@ -119,6 +120,7 @@ export function renderSidebar() {
     <div class="side-bot">
       <button class="sitem" data-a="pop" data-pop="user" style="height:36px" ${u.collapsed ? `data-tip="${t('nav.localProfile')}" data-tip-pos="right"` : ''}>${av(d.me, '', false)}<span class="trunc" style="color:var(--text);font-weight:500">${esc(owner?.name || '')}</span><span class="ct">${ic('chevrons-up-down', 13)}</span></button>
     </div>
+    <div class="side-rsz" role="separator" aria-orientation="vertical" aria-label="${t('nav.resizeSidebar')}" aria-valuemin="${SIDE_MIN}" aria-valuemax="${SIDE_MAX}" aria-valuenow="${sideWidth()}" tabindex="0" data-rsz-side></div>
   </nav>`;
 }
 

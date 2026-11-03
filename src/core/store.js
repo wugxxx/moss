@@ -10,6 +10,7 @@ export const DEFAULT_PREFS = {
   theme: 'system',
   accent: 'indigo',
   side: 'comfortable',
+  sideW: 272,
   density: 'comfortable',
   weekStart: 1,
   dateFmt: 'MMM d',

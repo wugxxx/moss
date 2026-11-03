@@ -103,6 +103,7 @@ export default {
     breadcrumb: '路径导航',
     collapseSidebar: '收起侧边栏',
     expandSidebar: '展开侧边栏',
+    resizeSidebar: '调整侧边栏宽度',
     projectOptions: '项目选项',
     toggleSubPages: '展开/收起子页面',
     expand: '展开',

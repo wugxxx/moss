@@ -2,6 +2,7 @@
 import { $, $$, addD, diffD, fmtDate, iso, parse } from '../core/utils.js';
 import { PR, ST } from '../core/constants.js';
 import { D, S, isTaskActive, proj, save, task } from '../core/store.js';
+import { SIDE_DEFAULT, SIDE_MAX, SIDE_MIN, sideWidth } from '../core/theme.js';
 import { toast } from '../ui/toast.js';
 import { fxSet, render } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
@@ -9,6 +10,21 @@ import { handleFiles, runCommand, updateTask } from './actions.js';
 import { t as tr } from '../i18n/index.js';
 
 export let DRAG = null;
+
+function setSideWidth(width) {
+  const next = Math.min(SIDE_MAX, Math.max(SIDE_MIN, Math.round(width)));
+  S.prefs.sideW = next;
+  document.documentElement.style.setProperty('--side-w', next + 'px');
+  document.querySelector('[data-rsz-side]')?.setAttribute('aria-valuenow', String(next));
+  save();
+  return next;
+}
+
+function positionSideResizer(el, clientY) {
+  const rect = el.getBoundingClientRect();
+  el.style.setProperty('--side-rsz-y', Math.round(clientY - rect.top) + 'px');
+}
+
 export function clearDropMarks() {
   $$('.drop-line').forEach(x => x.remove());
   $$('.over').forEach(x => x.classList.remove('over'));
@@ -204,6 +220,34 @@ document.addEventListener('drop', e => {
 /* timeline bar drag + table column resize (pointer events) */
 document.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
+  const sideRz = e.target.closest?.('[data-rsz-side]');
+  if (sideRz) {
+    e.preventDefault();
+    const w0 = sideWidth();
+    const x0 = e.clientX;
+    let width = w0;
+    positionSideResizer(sideRz, e.clientY);
+    sideRz.classList.add('dragging');
+    document.documentElement.classList.add('resizing-side');
+    const mv = ev => {
+      width = Math.min(SIDE_MAX, Math.max(SIDE_MIN, Math.round(w0 + ev.clientX - x0)));
+      document.documentElement.style.setProperty('--side-w', width + 'px');
+      sideRz.setAttribute('aria-valuenow', String(width));
+      positionSideResizer(sideRz, ev.clientY);
+    };
+    const up = () => {
+      removeEventListener('pointermove', mv);
+      removeEventListener('pointerup', up);
+      removeEventListener('pointercancel', up);
+      sideRz.classList.remove('dragging');
+      document.documentElement.classList.remove('resizing-side');
+      if (width !== S.prefs.sideW) setSideWidth(width);
+    };
+    addEventListener('pointermove', mv);
+    addEventListener('pointerup', up);
+    addEventListener('pointercancel', up);
+    return;
+  }
   const rz = e.target.closest?.('[data-rsz]');
   if (rz) {
     e.preventDefault();
@@ -277,4 +321,31 @@ document.addEventListener('pointerdown', e => {
   };
   addEventListener('pointermove', mv);
   addEventListener('pointerup', up);
+});
+
+document.addEventListener('keydown', e => {
+  const rz = e.target.closest?.('[data-rsz-side]');
+  if (!rz) return;
+  const step = e.shiftKey ? 32 : 8;
+  const width = sideWidth();
+  const next = e.key === 'ArrowLeft' ? width - step : e.key === 'ArrowRight' ? width + step : e.key === 'Home' ? SIDE_MIN : e.key === 'End' ? SIDE_MAX : null;
+  if (next === null) return;
+  e.preventDefault();
+  setSideWidth(next);
+});
+
+document.addEventListener('pointermove', e => {
+  const rz = e.target.closest?.('[data-rsz-side]');
+  if (rz) positionSideResizer(rz, e.clientY);
+});
+
+document.addEventListener('pointerover', e => {
+  const rz = e.target.closest?.('[data-rsz-side]');
+  if (rz) positionSideResizer(rz, e.clientY);
+});
+
+document.addEventListener('dblclick', e => {
+  if (!e.target.closest?.('[data-rsz-side]')) return;
+  e.preventDefault();
+  setSideWidth(SIDE_DEFAULT);
 });

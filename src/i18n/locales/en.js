@@ -103,6 +103,7 @@ export default {
     breadcrumb: 'Breadcrumb',
     collapseSidebar: 'Collapse sidebar',
     expandSidebar: 'Expand sidebar',
+    resizeSidebar: 'Resize sidebar',
     projectOptions: 'Project options',
     toggleSubPages: 'Toggle sub-pages',
     expand: 'Expand',

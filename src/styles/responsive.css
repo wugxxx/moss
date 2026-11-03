@@ -47,6 +47,9 @@
     transition: transform 0.22s var(--ease);
     box-shadow: var(--shadow-pop);
   }
+  .side-rsz {
+    display: none;
+  }
   .shell.mnav .side {
     transform: none;
   }
