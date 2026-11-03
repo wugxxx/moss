@@ -171,10 +171,6 @@ svg.logo {
   font-weight: 600;
   font-size: var(--fs);
 }
-.ws .chev-d {
-  color: var(--text-4);
-  flex-shrink: 0;
-}
 /* Scrolls without a visible bar: a scrollbar would eat width and push the nav off the logo's centre line when collapsed. */
 .side-scroll {
   flex: 1;
@@ -336,7 +332,6 @@ svg.logo {
 .collapsed .sitem .ct,
 .collapsed .sgroup-h,
 .collapsed .ws-name,
-.collapsed .ws .chev-d,
 .collapsed .sitem .sdot,
 .collapsed .sitem .fav,
 .collapsed .sitem .hov,

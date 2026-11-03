@@ -68,7 +68,6 @@ export function renderSidebar() {
         <button class="ws grow" data-a="go" data-r="home" aria-label="${t('nav.home')}">
           ${wsLogo(d.ws, 22)}
           <span class="ws-name trunc">${esc(d.ws.name)}</span>
-          ${u.collapsed ? '' : ic('chevron-down', 13, 'chev-d')}
         </button>
         <button class="ibtn ibtn-sm side-action" data-a="openPalette" data-tip="${t('nav.searchOrJump')}" aria-label="${t('nav.searchOrJump')}">${ic('search', 15)}</button>
         <button class="ibtn ibtn-sm side-action" data-a="pop" data-pop="create" data-tip="${t('nav.createNew')}" aria-label="${t('nav.createNew')}">${ic('square-pen', 15)}</button>
