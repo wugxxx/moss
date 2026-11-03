@@ -38,6 +38,7 @@ import './overlays/palette.js';
 import './pages/settings.js';
 import './actions/actions.js';
 import './actions/events.js';
+import './shell/tooltip.js';
 import './actions/keyboard.js';
 import './actions/drag-drop.js';
 import './features/subtasks.js';

@@ -1,5 +1,5 @@
 /* ---------- shell ---------- */
-import { MOD, TODAY, diffD, esc, parse } from '../core/utils.js';
+import { TODAY, diffD, esc, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
 import { D, S, allTasks, pColor, proj, visibleProjects } from '../core/store.js';
@@ -21,10 +21,10 @@ import { t } from '../i18n/index.js';
 export function renderShell() {
   const u = S.ui;
   return `<button class="skip" data-a="skipToContent">${t('nav.skipToContent')}</button><div class="shell ${u.collapsed ? 'collapsed' : ''} ${u.mnav ? 'mnav' : ''} ${u.fx.tabs ? 'fx-tabs' : ''}">
+    ${renderAppbar()}
     ${renderSidebar()}
     ${u.mnav ? '<div class="side-scrim" data-a="closeMnav"></div>' : ''}
     <main class="main" id="main">
-      ${renderTopbar()}
       <div class="content ${u.fx.route ? 'fx-route' : ''}" id="main-content" tabindex="-1" data-keep="c:${u.route}:${u.params.id || ''}:${u.params.tab || ''}:${u.params.sec || ''}">${u.loading ? skeleton() : renderPage()}</div>
     </main>
     ${renderBottomNav()}
@@ -68,12 +68,13 @@ export function renderSidebar() {
         <button class="ws grow" data-a="go" data-r="home" aria-label="${t('nav.home')}">
           ${wsLogo(d.ws, 22)}
           <span class="ws-name trunc">${esc(d.ws.name)}</span>
+          ${u.collapsed ? '' : ic('chevron-down', 13, 'chev-d')}
         </button>
-        ${u.collapsed ? '' : `<button class="ibtn ibtn-sm hide-m" data-a="toggleSide" data-tip="${t('nav.collapseSidebar')}  [" aria-label="${t('nav.collapseSidebar')}">${ic('panel-left', 15)}</button>`}
+        <button class="ibtn ibtn-sm side-action" data-a="openPalette" data-tip="${t('nav.searchOrJump')}" aria-label="${t('nav.searchOrJump')}">${ic('search', 15)}</button>
+        <button class="ibtn ibtn-sm side-action" data-a="pop" data-pop="create" data-tip="${t('nav.createNew')}" aria-label="${t('nav.createNew')}">${ic('square-pen', 15)}</button>
       </div>
     </div>
     <div class="side-scroll" data-keep="side">
-      ${u.collapsed ? `<button class="sitem" data-a="toggleSide" data-tip="${t('nav.expandSidebar')}" data-tip-pos="right" aria-label="${t('nav.expandSidebar')}">${ic('panel-left', 16)}</button>` : ''}
       ${sItem('home', t('nav.home'), 'house')}
       ${sItem('tasks', t('nav.tasks'), 'circle-check', { ct: dueSoon || '' })}
       ${sItem('favorites', t('nav.favorites'), 'star')}
@@ -89,8 +90,9 @@ export function renderSidebar() {
           .map(p => {
             const open = !!u.expanded[p.id];
             const on = inProj === p.id;
+            const parentOn = on && (u.collapsed || !open || !['board', 'list', 'timeline', 'files'].includes(u.params.tab));
             return `<div class="sproj" data-proj-drop="${p.id}">
-            <div class="sitem ${on ? 'on' : ''}" draggable="true" data-drag-proj="${p.id}" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project" role="link" tabindex="0" ${u.collapsed ? `data-tip="${esc(p.name)}" data-tip-pos="right"` : ''}>
+            <div class="sitem ${parentOn ? 'on' : ''}" draggable="true" data-drag-proj="${p.id}" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project" role="link" tabindex="0" ${u.collapsed ? `data-tip="${esc(p.name)}" data-tip-pos="right"` : ''}>
               <span class="pico" style="--c:${pColor(p)}" ${u.collapsed ? '' : `data-a="toggleExpand" data-id="${p.id}" aria-label="${t('nav.toggleSubPages')}"`}>${ic(p.icon, 12)}</span>
               <span class="trunc">${esc(p.name)}</span>
               ${p.fav ? `<span class="fav">${ic('star', 11)}</span>` : ''}
@@ -121,37 +123,34 @@ export function renderSidebar() {
   </nav>`;
 }
 
-export function crumbs() {
+export function renderAppbar() {
   const u = S.ui,
-    r = u.route,
-    out = [];
-  const c = (label, act = '', cur = false, icon = '') => `<button class="${cur ? 'cur' : ''}" ${act}>${icon}${esc(label)}</button>`;
-  if (r === 'project') {
-    const p = proj(u.params.id);
-    out.push(c(t('nav.projects'), 'data-a="go" data-r="projects"'));
-    if (p)
-      out.push(
-        c(
-          p.name,
-          `data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"`,
-          true,
-          `<span class="pico" style="--c:${pColor(p)};width:16px;height:16px;border-radius:4px;display:grid;place-items:center;color:${pColor(p)}">${ic(p.icon, 11)}</span>`,
-        ),
-      );
-  } else if (r === 'settings') {
-    out.push(c(t('nav.settings'), '', true));
-  } else out.push(c(ROUTE_NAMES[r] || t('nav.notFound'), '', true));
-  return out.join('<span class="sep">/</span>');
-}
-export function renderTopbar() {
-  return `<header class="topbar">
-    <button class="ibtn" data-a="openMnav" aria-label="${t('nav.openNavigation')}" style="display:none" id="mnav-btn">${ic('menu', 17)}</button>
-    <style>@media(max-width:900px){#mnav-btn{display:inline-flex!important}}</style>
-    <nav class="crumbs trunc" aria-label="${t('nav.breadcrumb')}">${crumbs()}</nav>
-    <span class="sp"></span>
-    <button class="topsearch" data-a="openPalette" aria-label="${t('palette.commandMenu')}">${ic('search', 14)}<span class="lbltxt">${t('nav.searchOrJump')}</span><span class="kbd">${MOD}K</span></button>
-    <button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="${t('nav.createNew')}">${ic('plus', 14)}<span class="hide-m">${t('nav.new')}</span>${ic('chevron-down', 12, 'hide-m')}</button>
-    <button class="ibtn hide-m" data-a="pop" data-pop="user" aria-label="${t('nav.profileMenu')}" style="width:auto;padding:0 2px">${av(D().me, 'md', false)}</button>
+    p = u.route === 'project' ? proj(u.params.id) : null;
+  const routeIcons = {
+    home: 'house',
+    favorites: 'star',
+    search: 'search',
+    projects: 'folder-kanban',
+    tasks: 'circle-check',
+    calendar: 'calendar',
+    timeline: 'chart-gantt',
+    settings: 'settings',
+  };
+  const label = p?.name || ROUTE_NAMES[u.route] || t('nav.notFound');
+  const icon = p ? `<span class="appbar-pico" style="--c:${pColor(p)}">${ic(p.icon, 12)}</span>` : ic(routeIcons[u.route] || 'house', 14);
+  const sideToggleLabel = u.collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar');
+  return `<header class="appbar">
+    <div class="appbar-side">
+      <button class="ibtn mnav-btn" data-a="openMnav" aria-label="${t('nav.openNavigation')}">${ic('menu', 17)}</button>
+      <button class="ibtn appbar-toggle" data-a="toggleSide" data-tip="${sideToggleLabel}" aria-label="${sideToggleLabel}">${ic('panel-left', 16)}</button>
+    </div>
+    <div class="appbar-main">
+      <div class="appbar-tab" title="${esc(label)}">
+        ${icon}
+        <span class="trunc">${esc(label)}</span>
+      </div>
+      <button class="ibtn ibtn-sm appbar-add" data-a="pop" data-pop="create" data-tip="${t('nav.createNew')}" aria-label="${t('nav.createNew')}">${ic('plus', 15)}</button>
+    </div>
   </header>`;
 }
 export function renderBottomNav() {

@@ -84,11 +84,12 @@
   --h-sm: 26px;
   --h-md: 30px;
   --h-lg: 36px;
-  --side-w: 252px;
-  --side-row: 30px;
+  --side-w: 272px;
+  --side-row: 31px;
   --row-h: 40px;
   --card-pad: 10px;
-  --topbar-h: 46px;
+  --appbar-h: 48px;
+  --canvas-radius: 14px;
   /* one horizontal content edge shared by breadcrumb, page headers, toolbars, lists, tables and boards */
   --gutter: 24px;
   --ease: cubic-bezier(0.23, 1, 0.32, 1);

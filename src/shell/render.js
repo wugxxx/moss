@@ -1,5 +1,5 @@
 /* =====================================================================
-   SHELL: render loop, router, sidebar, topbar, skeletons, filter engine
+   SHELL: render loop, router, sidebar, window bar, skeletons, filter engine
    ===================================================================== */
 import { $, $$ } from '../core/utils.js';
 import { D, S, proj } from '../core/store.js';
