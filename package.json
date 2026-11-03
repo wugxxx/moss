@@ -11,9 +11,14 @@
     "packages/*"
   ],
   "scripts": {
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "predev": "npm run brand:assets",
     "dev": "vite",
+    "predev:desktop": "npm run brand:assets",
     "dev:desktop": "vite --mode desktop",
+    "prebuild": "npm run brand:assets",
     "build": "vite build",
+    "prebuild:desktop": "npm run brand:assets",
     "build:desktop": "vite build --mode desktop",
     "pack": "npm run build:desktop && electron-builder --dir",
     "dist": "npm run build:desktop && electron-builder",
@@ -30,7 +35,7 @@
   "build": {
     "appId": "com.moss.workspace",
     "productName": "Moss",
-    "icon": "build/icon.png",
+    "icon": "build/icon.svg",
     "asar": true,
     "npmRebuild": false,
     "directories": {

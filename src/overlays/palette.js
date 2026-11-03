@@ -1,6 +1,7 @@
 /* ---------------- COMMAND PALETTE ---------------- */
 import { MOD, clamp, esc } from '../core/utils.js';
-import { LOGO, ic } from '../core/icons.js';
+import { LOGO } from '../core/brand.js';
+import { ic } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
 import { D, S, allTasks, pColor, proj } from '../core/store.js';
 import { FT, hl, stIcon } from '../ui/helpers.js';

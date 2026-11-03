@@ -1,3 +1,5 @@
 dist
 node_modules
 package-lock.json
+public/favicon.svg
+build/icon.svg

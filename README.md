@@ -26,6 +26,7 @@ Requires Node.js 24 or newer. The desktop main process uses Node's built-in
 
 ```bash
 npm install
+npm run brand:assets # regenerate favicon and desktop icon from src/core/brand.js
 npm run dev       # http://localhost:5173 with hot reload
 npm run build     # production build in dist/
 npm run dev:desktop # Vite renderer plus the Electron desktop shell
@@ -42,7 +43,9 @@ npm run format    # Prettier
 
 ```
 index.html              HTML entry; loads src/main.js
-public/favicon.svg      brand mark
+src/core/brand.js       single source for the Moss wordmark and app mark
+public/favicon.svg      generated brand mark for the web favicon
+build/icon.svg          generated brand mark for desktop packaging
 vite.config.js          Vite config, including the Lucide icon-subset plugin
 eslint.config.js        lint rules (ESLint flat config); formatting by Prettier (.prettierrc.json)
 .github/workflows/      CI: lint, format check, build

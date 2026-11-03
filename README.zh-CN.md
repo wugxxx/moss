@@ -14,6 +14,7 @@ Moss 是一款安静、以本地优先的个人项目管理工作台，提供首
 
 ```bash
 npm install
+npm run brand:assets # 从 src/core/brand.js 重新生成网站图标和桌面图标
 npm run dev          # 启动 http://localhost:5173，支持热更新
 npm run build        # 在 dist/ 中生成生产构建
 npm run dev:desktop  # 同时启动 Vite 渲染进程和 Electron 桌面外壳
@@ -30,7 +31,9 @@ npm run format       # Prettier
 
 ```
 index.html              HTML 入口，加载 src/main.js
-public/favicon.svg      品牌图标
+src/core/brand.js       Moss 文字标识和应用图标的唯一来源
+public/favicon.svg      由品牌源文件生成的网站图标
+build/icon.svg          由品牌源文件生成的桌面应用图标
 vite.config.js          Vite 配置，包括 Lucide 图标子集插件
 eslint.config.js        lint 规则（ESLint flat config）；格式化使用 Prettier（.prettierrc.json）
 .github/workflows/      CI：lint、格式检查、构建
