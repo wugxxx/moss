@@ -43,6 +43,7 @@ export const S = {
     route: 'home',
     params: {},
     history: [],
+    forward: [],
     collapsed: !!saved?.collapsed,
     mnav: false,
     expanded: { p1: true },

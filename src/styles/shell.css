@@ -53,12 +53,12 @@
   padding-left: 92px;
 }
 .shell.collapsed .appbar-side {
-  width: 52px;
-  padding: 0;
-  justify-content: center;
+  width: auto;
+  padding: 0 10px;
+  justify-content: flex-start;
 }
 :root[data-platform='darwin'] .shell.collapsed .appbar-side {
-  width: 128px;
+  width: auto;
   padding: 0 6px 0 92px;
   justify-content: flex-start;
 }
@@ -66,6 +66,15 @@
   display: none;
 }
 .appbar-toggle {
+  color: var(--text-3);
+}
+.appbar-history {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+.appbar-history .ibtn {
   color: var(--text-3);
 }
 .appbar-tab {

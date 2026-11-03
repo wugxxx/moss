@@ -109,6 +109,9 @@ export default {
     profileMenu: '个人资料菜单',
     notFound: '页面未找到',
     skipToContent: '跳转到正文',
+    history: '导航历史',
+    back: '后退',
+    forward: '前进',
   },
   vocab: {
     status: {

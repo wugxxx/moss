@@ -109,6 +109,9 @@ export default {
     profileMenu: 'Local profile menu',
     notFound: 'Not found',
     skipToContent: 'Skip to content',
+    history: 'Navigation history',
+    back: 'Go back',
+    forward: 'Go forward',
   },
   vocab: {
     status: {

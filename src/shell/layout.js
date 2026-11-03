@@ -139,10 +139,16 @@ export function renderAppbar() {
   const label = p?.name || ROUTE_NAMES[u.route] || t('nav.notFound');
   const icon = p ? `<span class="appbar-pico" style="--c:${pColor(p)}">${ic(p.icon, 12)}</span>` : ic(routeIcons[u.route] || 'house', 14);
   const sideToggleLabel = u.collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar');
+  const backLabel = t('nav.back');
+  const forwardLabel = t('nav.forward');
   return `<header class="appbar">
     <div class="appbar-side">
       <button class="ibtn mnav-btn" data-a="openMnav" aria-label="${t('nav.openNavigation')}">${ic('menu', 17)}</button>
       <button class="ibtn appbar-toggle" data-a="toggleSide" data-tip="${sideToggleLabel}" aria-label="${sideToggleLabel}">${ic('panel-left', 16)}</button>
+      <div class="appbar-history" role="group" aria-label="${t('nav.history')}">
+        <button class="ibtn ibtn-sm" data-a="back" data-tip="${backLabel}" aria-label="${backLabel}" ${u.history.length ? '' : 'disabled'}>${ic('arrow-left', 15)}</button>
+        <button class="ibtn ibtn-sm" data-a="forward" data-tip="${forwardLabel}" aria-label="${forwardLabel}" ${u.forward.length ? '' : 'disabled'}>${ic('arrow-right', 15)}</button>
+      </div>
     </div>
     <div class="appbar-main">
       <div class="appbar-tab" title="${esc(label)}">

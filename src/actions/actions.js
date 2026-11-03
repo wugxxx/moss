@@ -131,8 +131,18 @@ A.go = el => {
 };
 A.back = () => {
   const h = S.ui.history.pop();
-  if (h) go(h.route, h.params, { back: true });
-  else go('home');
+  if (!h) {
+    go('home');
+    return;
+  }
+  S.ui.forward.push({ route: S.ui.route, params: { ...S.ui.params } });
+  go(h.route, h.params, { back: true });
+};
+A.forward = () => {
+  const h = S.ui.forward.pop();
+  if (!h) return;
+  S.ui.history.push({ route: S.ui.route, params: { ...S.ui.params } });
+  go(h.route, h.params, { forward: true });
 };
 A.reload = () => render();
 A.openProject = el => go('project', { id: el.dataset.id, tab: S.prefs.defaultTab || 'board' });

@@ -18,11 +18,13 @@
     border-radius: 0;
     box-shadow: none;
   }
-  .appbar-side {
+  .appbar-side,
+  .shell.collapsed .appbar-side {
     width: auto;
     padding: 0 8px;
   }
-  :root[data-platform='darwin'] .appbar-side {
+  :root[data-platform='darwin'] .appbar-side,
+  :root[data-platform='darwin'] .shell.collapsed .appbar-side {
     padding-left: 92px;
   }
   .mnav-btn {
