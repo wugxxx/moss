@@ -58,12 +58,12 @@ export function pageHome() {
             ${upcoming.length > 7 ? `<button class="btn btn-sm btn-ghost" data-a="goTasks" data-f="open">${t('home.viewAllTasks', { count: open.length })}${ic('arrow-right', 13)}</button>` : ''}</div>
         </section>
         <section class="panel">
-          <div class="panel-h"><h2>${t('home.projectProgress')}</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="projects">${t('home.allProjects')}</button></div></div>
-          <div style="overflow-x:auto"><table class="perm-t" style="min-width:500px"><thead><tr><th style="padding-left:14px">${t('common.project')}</th><th style="text-align:left">${t('common.status')}</th><th style="text-align:left;width:26%">${t('common.progress')}</th><th style="text-align:left">${t('project.due')}</th></tr></thead><tbody>
+          <div class="panel-h"><h2>${t('home.projectProgress')}</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="projects">${t('home.allProjects')}${ic('arrow-up-right', 14)}</button></div></div>
+          <div style="overflow-x:auto"><table class="perm-t" style="min-width:500px" aria-label="${esc(t('home.projectProgress'))}"><tbody>
           ${activeP
             .map(p => {
               const pr = progressOf(p.id);
-              return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<b style="font-weight:500">${esc(p.name)}</b></span></td><td style="text-align:left">${pStatus(p.status)}</td><td><span class="row">${progBar(pr, p.status === 'risk' ? 'red' : '')}<span class="num faint" style="font-size:11.5px;width:30px">${pr}%</span></span></td><td style="text-align:left" class="num muted">${fmtDate(p.due)}</td></tr>`;
+              return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<b style="font-weight:500">${esc(p.name)}</b></span></td><td style="text-align:left">${pStatus(p.status)}</td><td><span class="row">${progBar(pr, p.status === 'risk' ? 'red' : '')}<span class="num faint" style="font-size:11.5px;width:30px">${pr}%</span></span></td><td style="text-align:left" class="num muted">${t('common.dueOn', { date: fmtDate(p.due) })}</td></tr>`;
             })
             .join('')}
           </tbody></table></div>
