@@ -1,9 +1,10 @@
 /* ---------- HOME ---------- */
-import { DAY, TODAY, diffD, esc, fmtDate, fmtWeekdayDate, parse } from '../core/utils.js';
+import { DAY, TODAY, addD, diffD, esc, fmtDate, fmtWeekdayDate, iso, monthLong, parse, weekdayShort } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { S, allTasks, isOver, me, pColor, progressOf, proj, visibleProjects } from '../core/store.js';
-import { empty, pIcon, pStatus, prIcon, progBar } from '../ui/helpers.js';
+import { allTasks, isOver, me, progressOf, visibleProjects } from '../core/store.js';
+import { empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
+import { startOfWeek } from '../views/calendar.js';
 import { miniRow } from '../components/task-list.js';
 import { t } from '../i18n/index.js';
 
@@ -12,58 +13,49 @@ export function pageHome() {
   const greet = h < 12 ? t('home.morning') : h < 18 ? t('home.afternoon') : t('home.evening');
   const ownerName = me()?.name || '';
   const all = allTasks();
-  const mineAll = all;
   const activeP = visibleProjects().filter(p => p.status !== 'complete');
   const open = all.filter(t => t.status !== 'done');
   const doneWk = all.filter(t => t.status === 'done' && t.completedAt && Date.now() - t.completedAt < 7 * DAY);
-  const over = all.filter(isOver);
-  const tab = S.ui.homeTab;
-  const lists = {
-    upcoming: sortTasks(
-      mineAll.filter(t => t.status !== 'done' && !isOver(t)),
-      { f: 'due', dir: 1 },
-    ),
-    overdue: mineAll.filter(isOver),
-    completed: sortTasks(
-      mineAll.filter(t => t.status === 'done'),
-      { f: 'updated', dir: 1 },
-    ),
-  };
-  const cur = lists[tab].slice(0, 7);
-  const dl = (lab, a, b) => {
-    const ts = sortTasks(
-      open.filter(t => t.due && diffD(parse(t.due), TODAY) >= a && diffD(parse(t.due), TODAY) <= b),
-      { f: 'priority', dir: 1 },
-    );
-    return { lab, ts };
-  };
-  const dls = [dl(t('time.today'), 0, 0), dl(t('time.tomorrow'), 1, 1), dl(t('time.thisWeek'), 2, 7)];
+  const summary = (key, count) => t(key, { count, value: `<span class="v">${count}</span>` });
+  const overdue = open.filter(isOver);
+  const upcoming = sortTasks(
+    open.filter(t => t.due && diffD(parse(t.due), TODAY) >= 0 && diffD(parse(t.due), TODAY) < 7),
+    { f: 'due', dir: 1 },
+  );
+  const cur = upcoming.slice(0, 7);
+  const weekStart = startOfWeek(TODAY);
+  const weekDays = Array.from({ length: 7 }, (_, i) => addD(weekStart, i));
+  const dueCounts = new Map();
+  for (const task of open) {
+    if (task.due) dueCounts.set(task.due, (dueCounts.get(task.due) || 0) + 1);
+  }
+  const nextDue = sortTasks(
+    open.filter(t => t.due && diffD(parse(t.due), TODAY) >= 0),
+    { f: 'due', dir: 1 },
+  )[0]?.due;
+  const scheduleCounts = [
+    { label: t('time.today'), count: dueCounts.get(iso(TODAY)) || 0 },
+    { label: t('time.tomorrow'), count: dueCounts.get(iso(addD(TODAY, 1))) || 0 },
+    { label: t('home.nextSevenDays'), count: upcoming.length },
+  ];
   return `<div class="page">
     <div class="ph"><div><h1>${greet}, ${esc(ownerName.split(' ')[0])}</h1><p><span class="num">${fmtWeekdayDate(TODAY)}</span> · ${t('home.attention')}</p></div>
       <div class="acts"><button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}${t('common.newProject')}</button><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}${t('common.newTask')}</button></div></div>
-    <div class="stats" style="margin-bottom:16px">
-      <button class="stat" data-a="go" data-r="projects"><span class="k">${ic('folder-kanban', 14)}${t('home.activeProjects')}</span><span class="v">${activeP.length}</span><span class="d">${t('home.atRisk', { count: activeP.filter(p => p.status === 'risk').length })}</span></button>
-      <button class="stat" data-a="goTasks" data-f="open"><span class="k">${ic('circle-dashed', 14)}${t('home.openTasks')}</span><span class="v">${open.length}</span><span class="d">${t('home.overdueCount', { count: over.length })}</span></button>
-      <button class="stat" data-a="goTasks" data-f="done"><span class="k">${ic('circle-check', 14)}${t('home.completed')}</span><span class="v">${doneWk.length}</span><span class="d up">${t('home.thisWeek')}</span></button>
-      <button class="stat" data-a="goTasks" data-f="overdue"><span class="k">${ic('clock-alert', 14)}${t('home.overdue')}</span><span class="v" style="${over.length ? 'color:var(--red)' : ''}">${over.length}</span><span class="d ${over.length ? 'bad' : ''}">${over.length ? t('home.needAttention') : t('home.allOnTrack')}</span></button>
+    <div class="stats">
+      <button class="stat" data-a="go" data-r="projects">${ic('folder-kanban', 14)}<span class="k">${summary('home.activeProjectsSummary', activeP.length)}</span></button>
+      <button class="stat" data-a="goTasks" data-f="open">${ic('circle-dashed', 14)}<span class="k">${summary('home.openTasksSummary', open.length)}</span></button>
+      <button class="stat" data-a="goTasks" data-f="done">${ic('circle-check', 14)}<span class="k">${summary('home.completedThisWeekSummary', doneWk.length)}</span></button>
     </div>
-    <div class="grid2">
+    <div class="grid2 home-grid">
       <div class="stack">
         <section class="panel" aria-labelledby="h-mytasks">
-          <div class="panel-h"><h2 id="h-mytasks">${t('home.focus')}</h2>
-            <div class="acts"><div class="seg" role="tablist">${[
-              ['upcoming', t('home.upcoming')],
-              ['overdue', t('home.overdue')],
-              ['completed', t('home.completed')],
-            ]
-              .map(
-                ([k, n]) =>
-                  `<button role="tab" class="${tab === k ? 'on' : ''}" data-a="set" data-k="homeTab" data-v="${k}">${n} <span class="faint">${lists[k].length}</span></button>`,
-              )
-              .join('')}</div>
-            <button class="ibtn ibtn-sm" data-a="go" data-r="tasks" data-tip="${t('home.openTasksTooltip')}" aria-label="${t('home.openTasksTooltip')}">${ic('arrow-up-right', 15)}</button></div></div>
-          ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? t('home.nothingOverdue') : t('home.noTasks'), tab === 'overdue' ? t('home.everyOpenOnSchedule') : t('home.addToMove'), '', 'sm')}
-          ${lists[tab].length > 7 ? `<button class="addrow" style="padding-left:14px;border-top:1px solid var(--divider);border-bottom:0" data-a="go" data-r="tasks">${t('home.viewAllTasks', { count: lists[tab].length })} ${ic('arrow-right', 13)}</button>` : ''}
+          <div class="panel-h"><h2 id="h-mytasks">${t('home.recentTasks')}</h2>
+            <div class="acts"><button class="btn btn-sm btn-ghost" data-a="goTasks">${t('tasks.allTasks')}${ic('arrow-up-right', 14)}</button></div></div>
+          ${overdue.length ? `<div class="home-task-notice alert danger"><span class="row">${ic('circle-alert', 15)}<b>${t('home.overdueTasksNotice', { count: overdue.length })}</b></span><button class="btn btn-sm btn-ghost" data-a="goTasks" data-f="overdue">${t('home.reviewOverdue')}${ic('arrow-right', 14)}</button></div>` : ''}
+          <div class="home-task-heading">${t('home.upcomingDeadlines')}<span class="cnt">${upcoming.length}</span></div>
+          ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty('list-checks', t('home.noUpcomingTasks'), '', '', 'sm')}
+          <div class="home-task-footer"><button class="btn btn-sm btn-ghost" data-a="newTask">${ic('plus', 14)}${t('common.addTask')}</button>
+            ${upcoming.length > 7 ? `<button class="btn btn-sm btn-ghost" data-a="goTasks" data-f="open">${t('home.viewAllTasks', { count: open.length })}${ic('arrow-right', 13)}</button>` : ''}</div>
         </section>
         <section class="panel">
           <div class="panel-h"><h2>${t('home.projectProgress')}</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="projects">${t('home.allProjects')}</button></div></div>
@@ -79,25 +71,21 @@ export function pageHome() {
       </div>
       <div class="stack">
         <section class="panel">
-          <div class="panel-h"><h2>${t('home.upcomingDeadlines')}</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="calendar">${ic('calendar', 13)}${t('nav.calendar')}</button></div></div>
-          <div class="panel-b" style="padding-bottom:6px">
-          ${dls
-            .map(
-              g => `<div style="margin-bottom:10px"><div class="row" style="font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:4px">${g.lab}<span class="faint" style="font-weight:500">${g.ts.length}</span></div>
-            ${
-              g.ts.length
-                ? g.ts
-                    .slice(0, 4)
-                    .map(
-                      t =>
-                        `<div class="row" style="height:30px;cursor:pointer;gap:8px;font-size:13px" data-a="openTask" data-id="${t.id}"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span><span class="trunc grow">${esc(t.title)}</span>${prIcon(t.priority, 13)}</div>`,
-                    )
-                    .join('') +
-                  (g.ts.length > 4 ? `<div class="faint" style="font-size:11.5px;padding-left:16px">${t('home.more', { count: g.ts.length - 4 })}</div>` : '')
-                : `<div class="faint" style="font-size:12.5px;padding:4px 0 2px">${t('home.nothingDue')}</div>`
-            }</div>`,
-            )
-            .join('')}
+          <div class="panel-h"><h2>${t('home.scheduleOverview')}</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="calendar">${ic('calendar', 13)}${t('nav.calendar')}</button></div></div>
+          <div class="panel-b">
+            <div class="home-schedule-month">${monthLong(TODAY.getMonth())}</div>
+            <div class="home-schedule-week">
+              ${weekDays
+                .map(day => {
+                  const date = iso(day);
+                  const count = dueCounts.get(date) || 0;
+                  const today = diffD(day, TODAY) === 0;
+                  return `<div class="home-schedule-day"><span class="muted">${weekdayShort(day.getDay())}</span><time datetime="${date}" class="num ${today ? 'today' : ''}" ${today ? 'aria-current="date"' : ''}>${day.getDate()}</time><span class="home-schedule-dot ${count ? 'has-tasks' : ''}" ${count ? `role="img" aria-label="${esc(t('home.tasksDueCount', { count }))}" title="${esc(t('home.tasksDueCount', { count }))}"` : 'aria-hidden="true"'}></span></div>`;
+                })
+                .join('')}
+            </div>
+            <dl class="home-schedule-counts">${scheduleCounts.map(({ label, count }) => `<div><dt>${label}</dt><dd>${count ? t('home.tasksDueCount', { count }) : t('home.noTasksDue')}</dd></div>`).join('')}</dl>
+            <p class="home-schedule-next muted">${nextDue ? t('home.nextDeadline', { date: fmtDate(nextDue) }) : t('home.noNextDeadline')}</p>
           </div>
         </section>
       </div>

@@ -28,17 +28,20 @@
 }
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 16px;
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   overflow: hidden;
 }
 .stat {
-  padding: 14px 16px;
+  padding: 18px 16px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-2);
+  text-align: center;
   transition: background var(--dur);
 }
 .stat + .stat {
@@ -48,28 +51,21 @@
   background: var(--surface-2);
 }
 .stat .k {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   font-size: var(--fs-sm);
   color: var(--text-2);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  line-height: 1;
 }
 .stat .v {
-  font-size: 22px;
+  font-size: 20px;
+  color: var(--text);
   font-weight: 600;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-.stat .d {
-  font-size: var(--fs-xs);
-  color: var(--text-3);
-}
-.stat .d.up {
-  color: var(--green);
-}
-.stat .d.bad {
-  color: var(--red);
+  line-height: 1;
 }
 .grid2 {
   display: grid;
@@ -80,6 +76,99 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.home-grid {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+.alert.home-task-notice {
+  margin: 4px 14px 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  color: var(--red);
+}
+.home-task-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 10px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+}
+.home-task-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--divider);
+}
+.home-schedule-month {
+  padding: 8px 0 12px;
+  font-weight: 600;
+}
+.home-schedule-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  padding-bottom: 18px;
+}
+.home-schedule-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-sm);
+}
+.home-schedule-day time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r);
+}
+.home-schedule-day .today {
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+  font-weight: 600;
+}
+.home-schedule-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+.home-schedule-dot.has-tasks {
+  background: var(--accent);
+}
+.home-schedule-counts {
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+.home-schedule-counts > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--divider);
+}
+.home-schedule-counts dt {
+  font-weight: 500;
+}
+.home-schedule-counts dd {
+  margin: 0;
+  text-align: right;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.home-schedule-next {
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--divider);
+  font-size: var(--fs-xs);
 }
 /* rows inside a bordered panel draw separators between themselves only, never against the panel edge */
 .panel > .mini:first-child {
