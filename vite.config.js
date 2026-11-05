@@ -86,6 +86,6 @@ export default defineConfig(({ mode }) => {
         : []),
     ],
     resolve: { alias: workspaceAliases },
-    server: { port: 5173 },
+    server: { port: 8080 },
   };
 });
