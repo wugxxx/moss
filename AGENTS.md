@@ -13,7 +13,7 @@
 Node.js 24 or newer is required.
 
 - `npm install` installs root and workspace dependencies.
-- `npm run dev` starts the web app at `http://localhost:5173`.
+- `npm run dev` starts the web app at `http://localhost:8080`.
 - `npm run dev:desktop` runs the renderer with the Electron shell.
 - `npm run build` creates the production web build in `dist/`.
 - `npm test` runs the Vitest suite; `npm run typecheck` checks strict TypeScript packages.
@@ -27,6 +27,13 @@ Node.js 24 or newer is required.
 - Use kebab-case filenames, camelCase functions and variables, and PascalCase TypeScript types and interfaces.
 - Declare interactions with `data-a="actionName"`, `data-in`, or `data-blur`; write business data through `runCommand()` and the workspace client, not direct mutations of `S.data`.
 - Route user-facing text through `t('namespace.key')` and keep `en.js` and `zh-CN.js` structurally aligned.
+
+## UI Implementation Principles
+
+- Drop secondary labels and descriptions; let the layout speak for itself.
+- Minimize interactions that force a decision; when one is unavoidable, place it where the user is already choosing.
+- Reduce unnecessary shadows and hover effects.
+- Remove visual noise: keep it clean, quiet, and focused on what matters.
 
 ## Testing Guidelines
 

@@ -71,9 +71,6 @@
   .page {
     padding: 20px var(--gutter) 96px;
   }
-  .stat {
-    padding: 14px 8px;
-  }
   .set {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -150,6 +147,22 @@
   }
   .hide-m {
     display: none !important;
+  }
+  .home-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .home-cmd .ph h1 {
+    font-size: 32px;
+  }
+  .home-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home-stat {
+    padding: 6px 16px;
+  }
+  .home-stat:nth-child(3) {
+    border-left: 0;
+    padding-left: 0;
   }
   .ph h1 {
     font-size: var(--fs-xl);

@@ -27,7 +27,7 @@ export function skeleton() {
   }
   if (r === 'projects') body = skCards(6);
   else if (r === 'home' || r === 'overview')
-    body = `<div class="stats">${Array.from({ length: 3 }, () => `<div class="stat">${sk('80px', 10)}${sk('24px', 20)}</div>`).join('')}</div><div class="grid2"><div class="panel" style="padding:14px">${skRows(6)}</div><div class="panel" style="padding:14px">${skRows(6)}</div></div>`;
+    body = `<div class="stack">${Array.from({ length: 2 }, () => `<div class="panel" style="padding:14px">${skRows(4)}</div>`).join('')}</div>`;
   else body = skRows(10);
   return `<div class="page" aria-busy="true" aria-label="${t('common.loading')}">${head}${body}</div>`;
 }
