@@ -3,8 +3,8 @@
 /* A new workspace starts with a single local owner and no projects or tasks. */
 export function seed() {
   return {
-    ws: { name: 'Moss', url: 'moss', c: '#1D1C1A', brand: true },
-    workspaces: [{ id: 'w1', name: 'Moss', c: '#1D1C1A', plan: 'Free', brand: true }],
+    ws: { name: 'Moss', url: 'moss', c: '#26332B', brand: true },
+    workspaces: [{ id: 'w1', name: 'Moss', c: '#26332B', plan: 'Free', brand: true }],
     me: 'm1',
     members: [
       {
@@ -14,7 +14,7 @@ export function seed() {
         role: 'Owner',
         team: 'product',
         title: '',
-        c: '#5A67D8',
+        c: '#4E765F',
         status: 'active',
         last: 0,
         tz: '',

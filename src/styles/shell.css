@@ -326,7 +326,7 @@ svg.logo {
   flex-shrink: 0;
 }
 .sitem .fav {
-  color: var(--amber);
+  color: var(--amber-ink);
   margin-left: 4px;
 }
 .sitem .hov {

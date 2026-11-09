@@ -1,0 +1,13 @@
+/* ============================================================
+   FONT FACES
+   Charter covers Latin text and numerals; 仓耳今楷 covers CJK text.
+   ============================================================ */
+@import 'charter-webfont/charter.css';
+
+@font-face {
+  font-family: 'CangEr JinKai';
+  src: url('/fonts/cang-er-jin-kai-w04.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}

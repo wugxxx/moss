@@ -1,4 +1,5 @@
 /* Load order matters: tokens first, responsive and motion overrides last. */
+@import './fonts.css';
 @import './tokens.css';
 @import './base.css';
 @import './components.css';

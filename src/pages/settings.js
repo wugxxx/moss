@@ -82,8 +82,8 @@ export function settingsBody(sec, title) {
         ['system', 'settings.system'],
       ]
         .map(([k, n]) => {
-          const L = { bg: '#FBFAF8', s: '#F2F1EE', t: '#1D1C1A', b: '#E3E1DC', a: '#4B5BD6' },
-            Dk = { bg: '#1D1D1C', s: '#151514', t: '#ECEAE5', b: '#333230', a: '#8E9AF3' };
+          const L = { bg: '#FFFDF7', s: '#FAF6EB', t: '#26332B', b: '#ECE7DC', a: '#4E765F' },
+            Dk = { bg: '#182019', s: '#131A15', t: '#EFEEE5', b: '#303A31', a: '#A4BEA7' };
           const pv = c =>
             `<div class="s" style="background:${c.s}"><i style="background:${c.b};width:70%"></i><i style="background:${c.a};width:55%"></i><i style="background:${c.b};width:80%"></i><i style="background:${c.b};width:60%"></i></div><div class="m" style="background:${c.bg}"><i style="background:${c.t};width:45%;height:7px"></i><i style="background:${c.b}"></i><i style="background:${c.b};width:80%"></i><i style="background:${c.a};width:30%;height:10px;margin-top:4px"></i></div>`;
           return `<button class="tcard ${P.theme === k ? 'on' : ''}" role="radio" aria-checked="${P.theme === k}" data-a="setTheme" data-v="${k}"><div class="tprev" style="${k === 'system' ? 'grid-template-columns:1fr 1fr;display:grid' : ''}">${k === 'system' ? `<div style="display:grid;grid-template-columns:30% 1fr">${pv(L)}</div><div style="display:grid;grid-template-columns:30% 1fr">${pv(Dk)}</div>` : pv(k === 'light' ? L : Dk)}</div><span class="row" style="font-weight:500;font-size:13px;gap:6px">${ic(k === 'light' ? 'sun' : k === 'dark' ? 'moon' : 'monitor', 14)}${t(n)}${P.theme === k ? `<span class="sp"></span><span style="color:var(--accent)">${ic('circle-check', 15)}</span>` : ''}</span></button>`;
@@ -93,12 +93,12 @@ export function settingsBody(sec, title) {
         t('settings.accent'),
         t('settings.accentHelp'),
         `<div class="swatches" role="radiogroup" aria-label="${t('settings.accentColor')}">${[
-          ['indigo', '#4B5BD6'],
-          ['blue', '#2F6CD4'],
-          ['violet', '#7348CC'],
-          ['teal', '#1A7F7A'],
-          ['rose', '#B93D68'],
-          ['graphite', '#34332F'],
+          ['indigo', '#4E765F'],
+          ['blue', '#7899A0'],
+          ['violet', '#8D7B9D'],
+          ['teal', '#6E9888'],
+          ['rose', '#AE786F'],
+          ['graphite', '#81776E'],
         ]
           .map(
             ([k, c]) =>
@@ -229,7 +229,7 @@ export function settingsBody(sec, title) {
       return (
         H(t('settings.profileLead')) +
         `<form data-submit="saveProfile" class="col" style="gap:16px;max-width:440px">
-      <div class="row" style="gap:14px">${av(d.me, 'xl', false)}<div><div class="label" style="margin-bottom:6px">${t('settings.avatarColor')}</div><div class="swatches">${['#5A67D8', '#C54B78', '#3B82C4', '#23918A', '#C48A1E', '#8662C9'].map(c => `<button type="button" class="sw ${owner?.c === c ? 'on' : ''}" style="--c:${c};width:22px;height:22px" data-a="avColor" data-v="${c}" aria-label="${t('settings.avatarColor')}"></button>`).join('')}</div></div></div>
+      <div class="row" style="gap:14px">${av(d.me, 'xl', false)}<div><div class="label" style="margin-bottom:6px">${t('settings.avatarColor')}</div><div class="swatches">${['#4E765F', '#7899A0', '#8D7B9D', '#6E9888', '#A88742', '#AE786F'].map(c => `<button type="button" class="sw ${owner?.c === c ? 'on' : ''}" style="--c:${c};width:22px;height:22px" data-a="avColor" data-v="${c}" aria-label="${t('settings.avatarColor')}"></button>`).join('')}</div></div></div>
       <div class="field"><label class="label" for="pf-name">${t('settings.displayName')}</label><input class="input ${err ? 'is-error' : ''}" id="pf-name" value="${esc(owner?.name || '')}">${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
       <div class="field"><label class="label" for="pf-title">${t('settings.titleRole')}</label><input class="input" id="pf-title" value="${esc(owner?.title || '')}"><span class="hint">${t('settings.profileHint')}</span></div>
       <div><button class="btn btn-primary" data-a="saveProfile" id="pf-save">${t('settings.saveProfile')}</button></div></form>`

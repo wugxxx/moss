@@ -108,14 +108,14 @@ export const PSTAT = {
   },
 };
 export const PCOLORS = {
-  indigo: '#5A67D8',
-  blue: '#3B82C4',
-  violet: '#8662C9',
-  teal: '#23918A',
-  rose: '#C54B78',
-  amber: '#C48A1E',
-  green: '#3D8E5F',
-  slate: '#6B7280',
+  indigo: '#4e765f',
+  blue: '#7899a0',
+  violet: '#8d7b9d',
+  teal: '#6e9888',
+  rose: '#ae786f',
+  amber: '#a88742',
+  green: '#4e765f',
+  slate: '#81776e',
 };
 export const PICONS = [
   'globe',

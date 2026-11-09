@@ -82,5 +82,8 @@
     "vite": "^6.4.4",
     "vite-plugin-electron": "^1.1.2",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "charter-webfont": "^4.1.0"
   }
 }

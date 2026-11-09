@@ -16,7 +16,7 @@ export function projectCard(p) {
   const pr = progressOf(p.id);
   const open = ts.filter(t => t.status !== 'done').length;
   return `<div class="pcard" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project" role="link" tabindex="0" aria-label="${esc(p.name)}">
-    <div class="row">${pIcon(p)}<div class="grow" style="min-width:0"><div class="row" style="gap:6px"><b class="trunc" style="font-weight:600;font-size:14px">${esc(p.name)}</b>${p.fav ? `<span style="color:var(--amber)">${ic('star', 12)}</span>` : ''}</div></div>${pStatus(p.status)}</div>
+    <div class="row">${pIcon(p)}<div class="grow" style="min-width:0"><div class="row" style="gap:6px"><b class="trunc" style="font-weight:600;font-size:14px">${esc(p.name)}</b>${p.fav ? `<span style="color:var(--amber-ink)">${ic('star', 12)}</span>` : ''}</div></div>${pStatus(p.status)}</div>
     <div class="desc">${esc(p.desc)}</div>
     <div class="row" style="gap:10px">${progBar(pr, p.status === 'complete' ? 'green' : p.status === 'risk' ? 'red' : '')}<span class="num" style="font-size:12px;font-weight:500">${pr}%</span></div>
     <div class="foot"><span class="row" style="gap:4px">${ic('circle-check', 12)}${ts.length - open}/${ts.length}</span><span class="row" style="gap:4px">${ic('calendar', 12)}${fmtDate(p.due)}</span><span class="row hide-m" style="gap:4px">${ic('clock', 12)}${ago(projectLastAt(p))}</span></div>

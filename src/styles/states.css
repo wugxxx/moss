@@ -69,7 +69,7 @@
   border-color: transparent;
 }
 .alert.warn .i {
-  color: var(--amber);
+  color: var(--amber-ink);
 }
 .alert.danger {
   background: var(--red-soft);

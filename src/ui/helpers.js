@@ -66,56 +66,56 @@ export function hl(text, q) {
 }
 export const FT = {
   fig: {
-    c: '#8662C9',
+    c: '#8d7b9d',
     i: 'pen-tool',
     get n() {
       return t('fileType.figma');
     },
   },
   pdf: {
-    c: '#C4473A',
+    c: '#98584f',
     i: 'file-text',
     get n() {
       return t('fileType.pdf');
     },
   },
   zip: {
-    c: '#6B7280',
+    c: '#81776e',
     i: 'folder-archive',
     get n() {
       return t('fileType.archive');
     },
   },
   img: {
-    c: '#23918A',
+    c: '#6e9888',
     i: 'image',
     get n() {
       return t('fileType.image');
     },
   },
   sheet: {
-    c: '#3D8E5F',
+    c: '#4e765f',
     i: 'file-spreadsheet',
     get n() {
       return t('fileType.spreadsheet');
     },
   },
   doc: {
-    c: '#3B82C4',
+    c: '#7899a0',
     i: 'file-text',
     get n() {
       return t('fileType.document');
     },
   },
   code: {
-    c: '#C48A1E',
+    c: '#80642e',
     i: 'file-code',
     get n() {
       return t('fileType.code');
     },
   },
   other: {
-    c: '#6B7280',
+    c: '#81776e',
     i: 'file',
     get n() {
       return t('fileType.file');

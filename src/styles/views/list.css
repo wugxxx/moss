@@ -262,7 +262,7 @@
   color: var(--red);
 }
 .due.soon {
-  color: var(--amber);
+  color: var(--amber-ink);
 }
 /* List rows start with an 18px drag handle + 30px checkbox column; pulling the wrapper left by
    the handle+cell inset puts the checkbox (and group chevrons) exactly on the shared gutter. */
