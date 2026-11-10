@@ -9,7 +9,7 @@ export function pageFavorites() {
   const ps = visibleProjects().filter(p => p.fav);
   const ts = allTasks().filter(t => t.fav);
   return `<div class="page wide">
-    <div class="ph"><div><h1>${t('favorites.title')}</h1><p>${t('favorites.lead')}</p></div></div>
+    <div class="ph"><div><p>${t('favorites.lead')}</p></div></div>
     ${
       !ps.length && !ts.length
         ? `<div class="panel">${empty('star', t('favorites.emptyTitle'), t('favorites.emptyText'), `<button class="btn btn-secondary btn-sm" data-a="go" data-r="projects">${t('favorites.browseProjects')}</button>`)}</div>`

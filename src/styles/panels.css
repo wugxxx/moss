@@ -40,7 +40,7 @@
 }
 .home-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   padding: 4px 0 18px;
   margin-bottom: 22px;
   border-bottom: 1px solid var(--divider);
@@ -67,6 +67,17 @@
 .home-stat span {
   font-size: var(--fs-sm);
   color: var(--text-2);
+}
+.home-stat .num.red {
+  color: var(--red);
+}
+.home-stat.link {
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: background var(--dur);
+}
+.home-stat.link:hover {
+  background: var(--surface-2);
 }
 .home-stat.date {
   flex-direction: row;
@@ -165,6 +176,130 @@
   padding: 12px 16px 4px;
   font-size: var(--fs-sm);
   color: var(--text-3);
+}
+/* ---------- HOME: work overview ---------- */
+.home-rhythm {
+  margin-bottom: 24px;
+}
+.home-rhythm .panel-h {
+  padding: 0 0 12px;
+}
+.due-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.due-cell {
+  background: var(--heat, transparent);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 8px;
+  min-height: 78px;
+  transition: box-shadow var(--dur);
+  cursor: pointer;
+}
+.due-cell[data-a]:hover {
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+.due-cell .dd {
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+.due-cell.today .dd {
+  color: var(--accent);
+  font-weight: 600;
+}
+.due-cell .dn {
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.due-cell .dn.empty {
+  color: var(--text-4);
+  font-weight: 500;
+}
+.rhythm-empty {
+  margin: 0;
+  padding: 18px 16px;
+  color: var(--text-3);
+  font-size: var(--fs);
+}
+.prows {
+  display: flex;
+  flex-direction: column;
+}
+.prow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: background var(--dur);
+}
+.prow + .prow {
+  border-top: 1px solid var(--divider);
+}
+.prow:hover {
+  background: var(--surface-2);
+}
+.prow .pname {
+  flex: 1 1 0;
+  min-width: 0;
+  font-weight: 600;
+  font-size: var(--fs);
+  color: var(--text);
+}
+.prow .pprog {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+.prow .pct {
+  flex: 0 0 auto;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+  min-width: 36px;
+  text-align: right;
+}
+.prow .pdone {
+  flex: 0.6 1 0;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.prow .pdue {
+  flex: 0.7 1 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.prow .pover {
+  flex: 0.4 1 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--red);
+  font-weight: 500;
+}
+.prow .pchev {
+  display: inline-flex;
+  color: var(--text-4);
+  transition: color var(--dur);
+}
+.prow:hover .pchev {
+  color: var(--text-2);
 }
 .home-progress {
   margin-top: 24px;

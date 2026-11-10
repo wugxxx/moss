@@ -8,6 +8,7 @@ import { SIDE_MAX, SIDE_MIN, sideWidth } from '../core/theme.js';
 import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
 import { pageHome } from '../pages/home.js';
+import { pageFocus } from '../pages/focus.js';
 import { pageTasks } from '../pages/tasks.js';
 import { pageFavorites } from '../pages/favorites.js';
 import { pageProjects } from '../pages/projects.js';
@@ -36,6 +37,7 @@ export function renderPage() {
   try {
     const P = {
       home: pageHome,
+      focus: pageFocus,
       favorites: pageFavorites,
       search: pageSearch,
       projects: pageProjects,
@@ -76,6 +78,7 @@ export function renderSidebar() {
     </div>
     <div class="side-scroll" data-keep="side">
       ${sItem('home', t('nav.home'), 'house')}
+      ${sItem('focus', t('nav.focus'), 'target')}
       ${sItem('tasks', t('nav.tasks'), 'circle-check', { ct: dueSoon || '' })}
       ${sItem('favorites', t('nav.favorites'), 'star')}
       <div class="sgroup">
@@ -129,6 +132,7 @@ export function renderAppbar() {
     p = u.route === 'project' ? proj(u.params.id) : null;
   const routeIcons = {
     home: 'house',
+    focus: 'target',
     favorites: 'star',
     search: 'search',
     projects: 'folder-kanban',

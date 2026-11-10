@@ -59,18 +59,17 @@ export const sel = (k, opts, v) =>
 
 export function pageSettings() {
   const sec = S.ui.params.sec || S.ui.settings || 'appearance';
-  const title = SET_NAV.flatMap(g => g[1]).find(x => x[0] === sec) || ['appearance', 'settings.appearance'];
   return `<div class="set">
     <nav class="set-nav" aria-label="${t('settings.title')}">${SET_NAV.map(([g, items]) => `<div class="gh">${t(g)}</div>${items.map(([k, n, i]) => `<button class="sitem ${sec === k ? 'on' : ''}" data-a="go" data-r="settings" data-sec="${k}">${ic(i, 15)}<span>${t(n)}</span></button>`).join('')}`).join('')}</nav>
-    <div class="set-body" data-keep="set:${sec}"><div class="set-in">${settingsBody(sec, t(title[1]))}</div></div>
+    <div class="set-body" data-keep="set:${sec}"><div class="set-in">${settingsBody(sec)}</div></div>
   </div>`;
 }
 
-export function settingsBody(sec, title) {
-  if (sec === 'data') return dataSettings(title);
+export function settingsBody(sec) {
+  if (sec === 'data') return dataSettings();
   const P = S.prefs;
   const d = D();
-  const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p>`;
+  const H = lead => `<p class="lead">${lead}</p>`;
   switch (sec) {
     case 'appearance':
       return (
@@ -173,7 +172,7 @@ export function settingsBody(sec, title) {
         )
       );
     case 'labels':
-      return labelsSettings(title);
+      return labelsSettings();
     case 'archive':
       return H(t('archive.lead')) + archiveBody();
     case 'preferences':
@@ -254,10 +253,10 @@ export function settingsBody(sec, title) {
         <div class="alert info" style="margin-top:18px">${ic('info', 15)}<span>${t('settings.aboutInfo')}</span></div>`
       );
   }
-  return settingsBody('appearance', t('settings.appearance'));
+  return settingsBody('appearance');
 }
 
-function labelsSettings(title) {
+function labelsSettings() {
   const items = labels();
   const counts = new Map(
     D().tasks.reduce((acc, task) => {
@@ -283,7 +282,7 @@ function labelsSettings(title) {
       </div>`;
     })
     .join('');
-  return `<h1>${title}</h1><p class="lead">${t('settings.labelsLead')}</p>
+  return `<p class="lead">${t('settings.labelsLead')}</p>
     <div class="sblock" style="margin-top:0">
       <div class="label-manager-head">
         <div><h2>${t('settings.allLabels')}</h2><p class="hint">${t('settings.labelsOrderHelp')}</p></div>
@@ -293,7 +292,7 @@ function labelsSettings(title) {
     </div>`;
 }
 
-function dataSettings(title) {
+function dataSettings() {
   const current = S.ui.sync;
   if (!current) {
     const requestId = (S.ui.syncRequestId || 0) + 1;
@@ -315,7 +314,7 @@ function dataSettings(title) {
         };
         if (S.ui.route === 'settings' && S.ui.params.sec === 'data') render();
       });
-    return `<h1>${title}</h1><p class="lead">${t('settings.loadingSync')}</p>`;
+    return `<p class="lead">${t('settings.loadingSync')}</p>`;
   }
 
   const P = S.prefs;
@@ -350,7 +349,7 @@ function dataSettings(title) {
     ? { name: t('settings.desktopWorkspace'), detail: t('settings.desktopWorkspaceDetail'), badge: t('settings.sqliteLocal') }
     : { name: t('settings.browserWorkspace'), detail: t('settings.browserWorkspaceDetail'), badge: t('settings.browserLocal') };
   return (
-    `<h1>${title}</h1><p class="lead">${t('settings.dataLead')}</p>` +
+    `<p class="lead">${t('settings.dataLead')}</p>` +
     `<div class="sblock" style="margin-top:0"><h2>${t('settings.backup')}</h2>
     ${srow(t('settings.exportLocalData'), t('settings.exportHelp', { projects: d.projects.length, tasks: d.tasks.length }), `<button class="btn btn-primary btn-sm" data-a="exportData">${ic('download', 14)}${t('settings.exportJson')}</button>`)}
     ${srow(t('settings.importBackup'), t('settings.importHelp'), `<label class="btn btn-secondary btn-sm" style="cursor:pointer">${ic('upload', 14)}${t('settings.importJson')}<input type="file" accept="application/json,.json" hidden data-in="importData"></label>`)}

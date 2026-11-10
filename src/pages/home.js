@@ -1,99 +1,103 @@
-/* ---------- HOME ---------- */
-import { TODAY, diffD, esc, fmtDate, fmtWeekdayDate, iso, parse } from '../core/utils.js';
+/* ---------- HOME: work overview ---------- */
+import { TODAY, diffD, dOff, esc, fmtDate, iso, parse } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { allTasks, isOver, me, pColor, proj, progressOf, tasksOf, visibleProjects } from '../core/store.js';
-import { empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
-import { sortTasks } from '../shell/view-engine.js';
-import { t } from '../i18n/index.js';
+import { allTasks, isOver, me, progressOf, tasksOf, visibleProjects } from '../core/store.js';
+import { empty, pIcon, progBar } from '../ui/helpers.js';
+import { getIntlLocale, t } from '../i18n/index.js';
 
-function homeRow(task, overdue) {
-  const p = proj(task.project);
-  const days = overdue ? -diffD(parse(task.due), TODAY) : 0;
-  return `<div class="hrow" data-a="openTask" data-id="${task.id}" data-ctx="task" role="button" tabindex="0">
-    <input type="checkbox" class="check round" data-a="toggleDone" data-id="${task.id}" aria-label="${esc(t('tasks.completeTask', { title: task.title }))}">
-    <div class="grow">
-      <div class="tt">${esc(task.title)}</div>
-      <div class="meta">
-        ${overdue ? `<span class="due-over">${t('home.overdueDays', { count: days })}</span>` : ''}
-        <span class="pj"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc">${esc(p?.name || '')}</span></span>
-      </div>
-    </div>
+const heat = n => (n === 0 ? '' : `style="--heat:color-mix(in srgb, var(--accent) ${Math.min(10 + n * 3, 40)}%, transparent)"`);
+
+function dueCell(date, i, count) {
+  const d = parse(date);
+  const label = i === 0 ? t('time.today') : `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, '0')}`;
+  return `<div class="due-cell ${i === 0 ? 'today' : ''}" ${heat(count)} data-a="go" data-r="calendar" role="link" tabindex="0" aria-label="${label}">
+    <span class="dd">${label}</span>
+    <span class="dn ${count ? '' : 'empty'}">${count || '—'}</span>
   </div>`;
 }
 
-function homeProjectCard(p) {
+function projectRow(p) {
   const ts = tasksOf(p.id);
   const pr = progressOf(p.id);
   const done = ts.filter(t => t.status === 'done').length;
   const overdue = ts.filter(isOver).length;
-  return `<div class="pcard" data-a="go" data-r="project" data-id="${p.id}" data-tab="overview" role="link" tabindex="0" aria-label="${esc(p.name)}">
-    <div class="row">${pIcon(p)}<div class="grow" style="min-width:0"><b class="trunc" style="font-weight:600">${esc(p.name)}</b></div>${pStatus(p.status)}</div>
-    <div class="row" style="gap:10px">${progBar(pr, p.status === 'risk' ? 'red' : '')}<span class="num" style="font-size:12px;font-weight:500">${pr}%</span></div>
-    <div class="foot">
-      <span class="row" style="gap:4px">${ic('circle-check', 12)}${done}/${ts.length}</span>
-      ${overdue ? `<span class="row" style="gap:4px;color:var(--red)" data-tip="${esc(t('home.overdueCount', { count: overdue }))}">${ic('circle-alert', 12)}${overdue}</span>` : ''}
-      <span class="sp"></span>
-      <span class="row" style="gap:4px">${ic('calendar', 12)}${fmtDate(p.due)}</span>
-    </div>
+  return `<div class="prow" data-a="go" data-r="project" data-id="${p.id}" data-tab="overview" role="link" tabindex="0" aria-label="${esc(p.name)}">
+    ${pIcon(p)}
+    <span class="pname trunc">${esc(p.name)}</span>
+    <span class="pprog">${progBar(pr, p.status === 'risk' ? 'red' : '')}</span>
+    <span class="pct">${pr}%</span>
+    <span class="pdone">${done}/${ts.length}</span>
+    ${p.due ? `<span class="pdue">${ic('calendar', 12)}${fmtDate(p.due)}</span>` : ''}
+    ${overdue ? `<span class="pover" data-tip="${esc(t('home.overdueCount', { count: overdue }))}">${ic('circle-alert', 12)}${overdue}</span>` : ''}
+    <span class="pchev">${ic('chevron-right', 14)}</span>
   </div>`;
 }
 
-function homeCol(kind, title, rows) {
-  return `<section class="home-col ${kind}">
-    <header class="home-col-h"><h3>${title}</h3></header>
-    <div class="home-col-list">${rows}</div>
-  </section>`;
+function greetHeading() {
+  const h = new Date().getHours();
+  const name = (me()?.name || '').split(' ')[0];
+  if (h < 5 || h >= 23) return name ? t('home.lateNight', { name: esc(name) }) : t('home.night');
+  const greet = t(h < 8 ? 'home.morning' : h < 11 ? 'home.forenoon' : h < 13 ? 'home.noon' : h < 18 ? 'home.afternoon' : 'home.evening');
+  return name ? t('home.greetHeading', { greet, name: esc(name) }) : greet;
 }
 
 export function pageHome() {
-  const h = new Date().getHours();
-  const greet = h < 12 ? t('home.morning') : h < 14 ? t('home.noon') : h < 18 ? t('home.afternoon') : t('home.evening');
-  const ownerName = me()?.name || '';
   const all = allTasks();
-  const activeP = visibleProjects().filter(p => p.status !== 'complete');
   const open = all.filter(t => t.status !== 'done');
-  const doneCount = all.length - open.length;
-  const overdue = sortTasks(open.filter(isOver), { f: 'due', dir: 1 });
-  const today = sortTasks(
-    open.filter(t => t.due && diffD(parse(t.due), TODAY) === 0),
-    { f: 'priority', dir: 1 },
-  );
-  const pct = all.length ? Math.round((doneCount / all.length) * 100) : 0;
+  const activeP = visibleProjects().filter(p => p.status !== 'complete');
 
-  const columns = [
-    homeCol(
-      'over',
-      t('home.overdueCol', { count: overdue.length }),
-      overdue.length ? overdue.map(t => homeRow(t, true)).join('') : `<p class="home-col-empty">${t('home.colEmptyOverdue')}</p>`,
-    ),
-    homeCol(
-      'today',
-      t('home.todayCol', { count: today.length }),
-      today.length ? today.map(t => homeRow(t, false)).join('') : `<p class="home-col-empty">${t('home.colEmptyToday')}</p>`,
-    ),
+  const overdue = open.filter(isOver).length;
+  const dueToday = open.filter(t => t.due && diffD(parse(t.due), TODAY) === 0).length;
+  const upcoming = open.filter(t => {
+    if (!t.due) return false;
+    const n = diffD(parse(t.due), TODAY);
+    return n >= 1 && n <= 7;
+  }).length;
+  const startsToday = open.filter(t => t.start && diffD(parse(t.start), TODAY) === 0).length;
+
+  const cells = [];
+  let totalDue = 0;
+  for (let i = 0; i < 7; i++) {
+    const date = dOff(i);
+    const count = open.filter(t => t.due === date).length;
+    totalDue += count;
+    cells.push(dueCell(date, i, count));
+  }
+
+  const dateLine = new Intl.DateTimeFormat(getIntlLocale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(TODAY);
+
+  const stats = [
+    [open.length, t('home.statPending'), '', 'tasks', ''],
+    [overdue, t('home.statOverdueShort'), 'red', 'focus', ''],
+    [dueToday, t('home.statDueToday'), '', 'focus', ''],
+    [upcoming, t('home.statUpcoming'), '', 'calendar', t('home.upcomingHint')],
+    [startsToday, t('home.statStartsToday'), '', 'calendar', ''],
   ];
-
-  const projects = activeP.map(homeProjectCard).join('');
 
   return `<div class="page home-cmd">
     <div class="ph home-ph">
       <div>
-        <h1>${t('home.todayHeading')}</h1>
-        <p class="home-greet">${t('home.greetLine', { greet, name: esc(ownerName.split(' ')[0]), motd: t('home.motd') })}</p>
+        <h1>${greetHeading()}</h1>
+        <p class="home-greet">${dateLine}</p>
       </div>
       <div class="acts"><button class="btn btn-primary" data-a="newTask" data-due="${iso(TODAY)}">${ic('plus', 14)}${t('common.newTask')}</button></div>
     </div>
     <div class="home-stats">
-      <div class="home-stat date"><span class="row">${ic('calendar', 18)}<span>${fmtWeekdayDate(TODAY)}</span></span></div>
-      <div class="home-stat"><b class="num">${activeP.length}</b><span>${t('home.statProjectsLabel')}</span></div>
-      <div class="home-stat"><b class="num">${open.length}</b><span>${t('home.statOpenLabel')}</span></div>
-      <div class="home-stat"><b class="num">${pct}%</b><span>${t('home.completionLabel')}</span></div>
+      ${stats
+        .map(
+          ([v, label, cls, r, tip]) =>
+            `<div class="home-stat link" data-a="go" data-r="${r}" ${tip ? `data-tip="${esc(tip)}"` : ''}><b class="num ${cls}">${v}</b><span>${label}</span></div>`,
+        )
+        .join('')}
     </div>
-    <div class="home-cols">${columns.join('')}</div>
+    <section class="home-rhythm" aria-labelledby="h-rhythm">
+      <div class="panel-h"><h2 id="h-rhythm">${t('home.dueDistribution')}</h2></div>
+      ${totalDue ? `<div class="due-grid">${cells.join('')}</div>` : `<p class="rhythm-empty">${t('home.rhythmEmpty')}</p>`}
+    </section>
     <section class="home-progress" aria-labelledby="h-progress">
-      <div class="panel-h"><h2 id="h-progress">${t('home.progressOverview')}</h2>
+      <div class="panel-h"><h2 id="h-progress">${t('home.unfinishedProjects')}</h2>
         <div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="projects">${t('home.allProjects')}${ic('arrow-up-right', 14)}</button></div></div>
-      ${activeP.length ? `<div class="home-projects"><div class="pgrid">${projects}</div></div>` : empty('folder-kanban', t('home.noProjects'), t('home.noProjectsText'), '', 'sm')}
+      ${activeP.length ? `<div class="home-projects"><div class="prows">${activeP.map(projectRow).join('')}</div></div>` : empty('folder-kanban', t('home.emptyProjects'), t('home.noProjectsText'), '', 'sm')}
     </section>
   </div>`;
 }

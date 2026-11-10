@@ -104,6 +104,6 @@ export function calendarHtml(ts, opt = {}) {
 export function pageWsCalendar() {
   const key = 'cal';
   const v = viewOf(key);
-  return `<div class="page flush"><div class="ph"><div><h1>${tr('calendar.title')}</h1><p>${tr('calendar.lead')}</p></div><div class="acts"><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}${tr('calendar.newTask')}</button></div></div>
+  return `<div class="page flush"><div class="ph"><div><p>${tr('calendar.lead')}</p></div><div class="acts"><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}${tr('calendar.newTask')}</button></div></div>
   ${viewToolbar(key, { group: false })}${calendarHtml(applyView(allTasks(), v), { key, events: true })}</div>`;
 }

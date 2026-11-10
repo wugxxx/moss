@@ -16,6 +16,9 @@ export const ROUTE_NAMES = {
   get home() {
     return t('nav.home');
   },
+  get focus() {
+    return t('nav.focus');
+  },
   get favorites() {
     return t('nav.favorites');
   },
@@ -40,6 +43,7 @@ export const ROUTE_NAMES = {
 };
 export const ROUTE_ICONS = {
   home: 'house',
+  focus: 'target',
   favorites: 'star',
   search: 'search',
   projects: 'folder-kanban',

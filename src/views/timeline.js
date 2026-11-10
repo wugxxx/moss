@@ -182,6 +182,6 @@ export function pageWsTimeline() {
     S.ui._tlWsInit = 1;
     S.ui.tlGroup = 'project';
   }
-  return `<div class="page flush"><div class="ph"><div><h1>${tr('timeline.title')}</h1><p>${tr('timeline.lead')}</p></div></div>
+  return `<div class="page flush"><div class="ph"><div><p>${tr('timeline.lead')}</p></div></div>
   ${viewToolbar(key, { group: false, extra: tlControls(key) })}${timelineHtml(applyView(allTasks(), v), key, null)}</div>`;
 }

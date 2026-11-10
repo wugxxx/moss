@@ -160,9 +160,20 @@
   .home-stat {
     padding: 6px 16px;
   }
-  .home-stat:nth-child(3) {
+  .home-stat:nth-child(odd) {
     border-left: 0;
     padding-left: 0;
+  }
+  .due-grid {
+    grid-template-columns: repeat(7, minmax(68px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .prow .pdone {
+    display: none;
+  }
+  .prow .pdue {
+    flex: 0 0 auto;
   }
   .ph h1 {
     font-size: var(--fs-xl);
