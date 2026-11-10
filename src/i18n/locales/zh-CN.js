@@ -774,6 +774,7 @@ export default {
     next7Days: '未来 7 天',
     later: '更晚',
     noDueDate: '未设置截止日期',
+    noStartDate: '未设置开始日期',
     createdAt: '创建时间',
     updatedAt: '更新时间',
     last24Hours: '过去 24 小时',

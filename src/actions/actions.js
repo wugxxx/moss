@@ -187,7 +187,11 @@ A.goTasks = el => {
           ? [{ f: 'due', op: 'is', v: ['overdue'] }]
           : f === 'today'
             ? [{ f: 'due', op: 'is', v: ['today'] }]
-            : [];
+            : f === 'week'
+              ? [{ f: 'due', op: 'is', v: ['week'] }]
+              : f === 'start'
+                ? [{ f: 'start', op: 'is', v: ['today'] }]
+                : [];
   go('tasks');
 };
 A.goFilteredList = el => {

@@ -776,6 +776,7 @@ export default {
     next7Days: 'Next 7 days',
     later: 'Later',
     noDueDate: 'No due date',
+    noStartDate: 'No start date',
     createdAt: 'Created date',
     updatedAt: 'Updated date',
     last24Hours: 'Last 24 hours',

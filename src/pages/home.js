@@ -67,11 +67,11 @@ export function pageHome() {
   const dateLine = new Intl.DateTimeFormat(getIntlLocale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(TODAY);
 
   const stats = [
-    [open.length, t('home.statPending'), '', 'tasks', ''],
-    [overdue, t('home.statOverdueShort'), 'red', 'focus', ''],
-    [dueToday, t('home.statDueToday'), '', 'focus', ''],
-    [upcoming, t('home.statUpcoming'), '', 'calendar', t('home.upcomingHint')],
-    [startsToday, t('home.statStartsToday'), '', 'calendar', ''],
+    { v: open.length, label: t('home.statPending'), f: 'open' },
+    { v: overdue, label: t('home.statOverdueShort'), cls: 'red', f: 'overdue' },
+    { v: dueToday, label: t('home.statDueToday'), f: 'today' },
+    { v: upcoming, label: t('home.statUpcoming'), f: 'week', tip: t('home.upcomingHint') },
+    { v: startsToday, label: t('home.statStartsToday'), f: 'start' },
   ];
 
   return `<div class="page home-cmd">
@@ -84,10 +84,10 @@ export function pageHome() {
     </div>
     <div class="home-stats">
       ${stats
-        .map(
-          ([v, label, cls, r, tip]) =>
-            `<div class="home-stat link" data-a="go" data-r="${r}" ${tip ? `data-tip="${esc(tip)}"` : ''}><b class="num ${cls}">${v}</b><span>${label}</span></div>`,
-        )
+        .map(s => {
+          const act = s.f ? `data-a="goTasks" data-f="${s.f}"` : `data-a="go" data-r="${s.r}"`;
+          return `<div class="home-stat link" ${act} ${s.tip ? `data-tip="${esc(s.tip)}"` : ''}><b class="num ${s.cls || ''}">${s.v}</b><span>${s.label}</span></div>`;
+        })
         .join('')}
     </div>
     <section class="home-rhythm" aria-labelledby="h-rhythm">

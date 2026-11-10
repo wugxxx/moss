@@ -34,6 +34,18 @@ export const FIELDS = {
       { id: 'nodate', name: t('view.noDueDate') },
     ],
   },
+  start: {
+    get name() {
+      return t('common.startDate');
+    },
+    icon: 'flag',
+    opts: () => [
+      { id: 'today', name: t('view.today') },
+      { id: 'week', name: t('view.next7Days') },
+      { id: 'later', name: t('view.later') },
+      { id: 'nodate', name: t('view.noStartDate') },
+    ],
+  },
   project: {
     get name() {
       return t('common.project');
@@ -103,7 +115,14 @@ export function matchF(t, f) {
       if (v === 'nodate') return !t.due;
       if (!t.due) return false;
       const n = diffD(parse(t.due), TODAY);
-      return v === 'overdue' ? isOver(t) : v === 'today' ? n === 0 : v === 'week' ? n >= 0 && n <= 7 : n > 7;
+      return v === 'overdue' ? isOver(t) : v === 'today' ? n === 0 : v === 'week' ? n >= 1 && n <= 7 : n > 7;
+    });
+  } else if (f.f === 'start') {
+    hit = f.v.some(v => {
+      if (v === 'nodate') return !t.start;
+      if (!t.start) return false;
+      const n = diffD(parse(t.start), TODAY);
+      return v === 'today' ? n === 0 : v === 'week' ? n >= 1 && n <= 7 : n > 7;
     });
   } else if (f.f === 'created' || f.f === 'updated') {
     const ts = f.f === 'created' ? t.created : t.updated;
