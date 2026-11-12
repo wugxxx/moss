@@ -27,8 +27,8 @@ function projectRow(p) {
     <span class="pprog">${progBar(pr, p.status === 'risk' ? 'red' : '')}</span>
     <span class="pct">${pr}%</span>
     <span class="pdone">${done}/${ts.length}</span>
-    ${p.due ? `<span class="pdue">${ic('calendar', 12)}${fmtDate(p.due)}</span>` : ''}
-    ${overdue ? `<span class="pover" data-tip="${esc(t('home.overdueCount', { count: overdue }))}">${ic('circle-alert', 12)}${overdue}</span>` : ''}
+    <span class="pdue">${p.due ? `${ic('calendar', 12)}${fmtDate(p.due)}` : ''}</span>
+    <span class="pover" ${overdue ? `data-tip="${esc(t('home.overdueCount', { count: overdue }))}"` : 'aria-hidden="true"'}>${overdue ? `${ic('circle-alert', 12)}${overdue}` : ''}</span>
     <span class="pchev">${ic('chevron-right', 14)}</span>
   </div>`;
 }
