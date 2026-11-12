@@ -56,7 +56,7 @@ export function pageProjects() {
       .join('')}
     </tbody></table></div>`;
   return `<div class="page wide">
-    <div class="ph"><div><h1>${t('projects.title')}</h1><p>${t('projects.activeCompleted', { active: visibleProjects().filter(p => p.status !== 'complete').length, completed: visibleProjects().filter(p => p.status === 'complete').length })}</p></div><div class="acts"><button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}${t('common.newProject')}</button></div></div>
+    <div class="ph"><div><h1>${t('projects.title')}</h1><p>${t('projects.activeCompleted', { active: visibleProjects().filter(p => p.status !== 'complete').length, completed: visibleProjects().filter(p => p.status === 'complete').length })}</p></div></div>
     <div class="row" style="margin-bottom:16px;flex-wrap:wrap;gap:8px">
       <div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="proj-q" data-in="projQ" placeholder="${t('projects.searchPlaceholder')}" value="${esc(u.projQ || '')}" aria-label="${t('projects.searchPlaceholder')}"></div>
       <select class="select" style="height:26px;width:auto;font-size:12px" data-in="projStatus" aria-label="${t('projects.filterByStatus')}"><option value="all">${t('projects.allStatuses')}</option>${Object.entries(

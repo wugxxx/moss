@@ -22,6 +22,9 @@ export const ROUTE_NAMES = {
   get favorites() {
     return t('nav.favorites');
   },
+  get completed() {
+    return t('nav.completed');
+  },
   get search() {
     return t('nav.search');
   },
@@ -45,6 +48,7 @@ export const ROUTE_ICONS = {
   home: 'house',
   focus: 'target',
   favorites: 'star',
+  completed: 'circle-check',
   search: 'search',
   projects: 'folder-kanban',
   tasks: 'list-checks',

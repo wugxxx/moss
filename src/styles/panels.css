@@ -114,18 +114,16 @@
 .home-col.today .home-col-h h3 {
   color: var(--accent);
 }
-.home-col-list {
-  height: 380px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
+.home-col.done .home-col-h {
+  background: color-mix(in srgb, var(--st-done) 10%, transparent);
 }
-.home-col-list::-webkit-scrollbar {
-  width: 8px;
+.home-col.done .home-col-h h3 {
+  color: var(--st-done);
 }
-.home-col-list::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 4px;
+.hrow.done .tt {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-3);
 }
 .hrow {
   display: flex;

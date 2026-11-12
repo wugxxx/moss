@@ -7,6 +7,8 @@ import { esc } from './utils.js';
 const LOCAL_ICONS = {
   'square-pen':
     '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/>',
+  /* Lucide `clock-alert`, registered under the `clock-exclamation-point` name. */
+  'clock-exclamation-point': '<path d="M12 6v6l4 2"/><path d="M16 21.16a10 10 0 1 1 5-13.516"/><path d="M20 11.5v6"/><path d="M20 21.5h.01"/>',
 };
 
 export const _icCache = {};

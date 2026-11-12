@@ -61,6 +61,7 @@ export const S = {
     editCell: null,
     openTasks: {},
     collapsedGroups: {},
+    focusOverdueOpen: false,
     calDate: iso(TODAY),
     calMode: 'month',
     tlZoom: 'week',

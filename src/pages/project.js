@@ -84,7 +84,6 @@ export function pageProject() {
 }
 export function taskViewBody(type, ts, key, p) {
   const v = viewOf(key);
-  const addBtn = `<button class="btn btn-primary btn-sm" data-a="newTask" data-project="${p.id}">${ic('plus', 13)}${t('common.newTask')}</button>`;
   const noTasks = !tasksOf(p.id).length;
   const emptyAll = empty(
     'list-checks',
@@ -98,14 +97,14 @@ export function taskViewBody(type, ts, key, p) {
     t('project.noFilterMatches'),
     `<button class="btn btn-secondary btn-sm" data-a="clearFilters" data-key="${key}">${t('common.clearFilters')}</button>`,
   );
-  if (type === 'board') return viewToolbar(key, { group: false, right: addBtn }) + (noTasks ? emptyAll : boardHtml(ts, key, { project: p.id }));
+  if (type === 'board') return viewToolbar(key, { group: false }) + (noTasks ? emptyAll : boardHtml(ts, key, { project: p.id }));
   if (type === 'list')
     return (
-      viewToolbar(key, { right: addBtn }) +
+      viewToolbar(key) +
       `<div class="list-wrap">${noTasks ? emptyAll : !ts.length ? emptyFilter : listHtml(groupTasks(ts, v.group), key, { project: p.id })}</div>`
     );
-  if (type === 'table') return viewToolbar(key, { cols: true, right: addBtn }) + (noTasks ? emptyAll : tableHtml(ts, key, p));
-  if (type === 'calendar') return viewToolbar(key, { group: false, right: addBtn }) + calendarHtml(ts, { key, project: p.id, events: true });
-  if (type === 'timeline') return viewToolbar(key, { group: false, right: addBtn, extra: tlControls(key) }) + timelineHtml(ts, key, p);
+  if (type === 'table') return viewToolbar(key, { cols: true }) + (noTasks ? emptyAll : tableHtml(ts, key, p));
+  if (type === 'calendar') return viewToolbar(key, { group: false }) + calendarHtml(ts, { key, project: p.id, events: true });
+  if (type === 'timeline') return viewToolbar(key, { group: false, extra: tlControls(key) }) + timelineHtml(ts, key, p);
   return page404();
 }

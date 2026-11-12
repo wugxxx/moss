@@ -106,8 +106,12 @@
   color: color-mix(in srgb, var(--c) var(--pc-mix, 100%), var(--text));
   flex-shrink: 0;
 }
-.appbar-add {
-  color: var(--text-2);
+.appbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
 }
 .side {
   grid-column: 1;

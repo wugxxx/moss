@@ -11,6 +11,7 @@ import { pageHome } from '../pages/home.js';
 import { pageFocus } from '../pages/focus.js';
 import { pageTasks } from '../pages/tasks.js';
 import { pageFavorites } from '../pages/favorites.js';
+import { pageCompleted } from '../pages/completed.js';
 import { pageProjects } from '../pages/projects.js';
 import { pageSearch } from '../pages/search.js';
 import { page404, stateFailed } from '../pages/errors.js';
@@ -39,6 +40,7 @@ export function renderPage() {
       home: pageHome,
       focus: pageFocus,
       favorites: pageFavorites,
+      completed: pageCompleted,
       search: pageSearch,
       projects: pageProjects,
       project: pageProject,
@@ -63,6 +65,8 @@ export function renderSidebar() {
     d = D();
   const owner = d.members.find(member => member.id === d.me);
   const dueSoon = allTasks().filter(t => t.status !== 'done' && t.due && diffD(parse(t.due), TODAY) <= 0).length;
+  const favCount = visibleProjects().filter(p => p.fav).length + allTasks().filter(t => t.fav).length;
+  const doneCount = allTasks().filter(t => t.status === 'done').length;
   const projs = visibleProjects().filter(p => p.status !== 'complete');
   const inProj = u.route === 'project' ? u.params.id : null;
   return `<nav class="side" aria-label="${t('nav.main')}">
@@ -78,11 +82,12 @@ export function renderSidebar() {
     </div>
     <div class="side-scroll" data-keep="side">
       ${sItem('home', t('nav.home'), 'house')}
-      ${sItem('focus', t('nav.focus'), 'target')}
-      ${sItem('tasks', t('nav.tasks'), 'circle-check', { ct: dueSoon || '' })}
-      ${sItem('favorites', t('nav.favorites'), 'star')}
+      ${sItem('focus', t('nav.focus'), 'target', { ct: dueSoon || '' })}
+      ${sItem('favorites', t('nav.favorites'), 'star', { ct: favCount || '' })}
+      ${sItem('completed', t('nav.completed'), 'circle-check', { ct: doneCount || '' })}
       <div class="sgroup">
         <div class="sgroup-h">${t('nav.work')}</div>
+        ${sItem('tasks', t('nav.tasks'), 'list-checks')}
         ${sItem('projects', t('nav.projects'), 'folder-kanban')}
         ${sItem('calendar', t('nav.calendar'), 'calendar')}
         ${sItem('timeline', t('nav.timeline'), 'chart-gantt')}
@@ -136,7 +141,8 @@ export function renderAppbar() {
     favorites: 'star',
     search: 'search',
     projects: 'folder-kanban',
-    tasks: 'circle-check',
+    tasks: 'list-checks',
+    completed: 'circle-check',
     calendar: 'calendar',
     timeline: 'chart-gantt',
     settings: 'settings',
@@ -160,7 +166,10 @@ export function renderAppbar() {
         ${icon}
         <span class="trunc">${esc(label)}</span>
       </div>
-      <button class="ibtn ibtn-sm appbar-add" data-a="pop" data-pop="create" data-tip="${t('nav.createNew')}" aria-label="${t('nav.createNew')}">${ic('plus', 15)}</button>
+      <div class="appbar-actions">
+        <button class="btn btn-sm btn-secondary" data-a="newProject" data-tip="${t('common.newProject')}" aria-label="${t('common.newProject')}">${ic('folder-plus', 14)}<span class="hide-m">${t('common.newProject')}</span></button>
+        <button class="btn btn-sm btn-primary" data-a="newTask" data-tip="${t('common.newTask')}" aria-label="${t('common.newTask')}">${ic('plus', 14)}<span class="hide-m">${t('common.newTask')}</span></button>
+      </div>
     </div>
   </header>`;
 }
@@ -169,7 +178,7 @@ export function renderBottomNav() {
   const b = (route, label, icon, extra = '') =>
     `<button class="${r === route ? 'on' : ''}" data-a="go" data-r="${route}">${ic(icon, 19)}<span>${label}</span>${extra}</button>`;
   return `<nav class="bottomnav" aria-label="${t('nav.primary')}">
-    ${b('home', t('nav.home'), 'house')}${b('tasks', t('nav.tasks'), 'circle-check')}${b('projects', t('nav.projects'), 'folder-kanban')}${b('calendar', t('nav.calendar'), 'calendar')}
+    ${b('home', t('nav.home'), 'house')}${b('tasks', t('nav.tasks'), 'list-checks')}${b('projects', t('nav.projects'), 'folder-kanban')}${b('calendar', t('nav.calendar'), 'calendar')}
     <button data-a="openMnav">${ic('ellipsis', 19)}<span>${t('nav.more')}</span></button>
   </nav>`;
 }

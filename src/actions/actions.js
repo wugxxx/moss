@@ -4,7 +4,23 @@
 import { $, $$, TODAY, addD, dOff, esc, iso, parse, uid } from '../core/utils.js';
 import { PR, PSTAT } from '../core/constants.js';
 import { seed } from '../data/seed.js';
-import { D, DEFAULT_PREFS, S, allTasks, label, labelName, labels, me, proj, replaceWorkspace, save, task, tasksOf, visibleProjects } from '../core/store.js';
+import {
+  D,
+  DEFAULT_PREFS,
+  S,
+  allTasks,
+  isOver,
+  label,
+  labelName,
+  labels,
+  me,
+  proj,
+  replaceWorkspace,
+  save,
+  task,
+  tasksOf,
+  visibleProjects,
+} from '../core/store.js';
 import { fileType, fsize } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
 import { toast } from '../ui/toast.js';
@@ -362,9 +378,28 @@ A.toggleDone = el => {
   if (!t) return;
   const wasDone = t.status === 'done';
   S.ui.pop = null;
+  if (!wasDone) fxSet({ done: t.id });
   updateTask(t.id, { status: wasDone ? (t.prevStatus && t.prevStatus !== 'done' ? t.prevStatus : 'todo') : 'done' });
   if (!wasDone)
     toast(tr('toast.completed', { title: t.title }), { action: tr('common.undo'), onAction: () => updateTask(t.id, { status: t.prevStatus || 'todo' }) });
+};
+A.rescheduleAll = () => {
+  const overdue = allTasks().filter(t => t.status !== 'done' && isOver(t));
+  if (!overdue.length) return;
+  const snap = snapshot();
+  void runCommand('task.bulkPatch', { ids: overdue.map(t => t.id), patch: { due: iso(TODAY) } }).then(result => {
+    if (result) toast(tr('toast.rescheduled', { count: overdue.length }), { action: tr('common.undo'), onAction: () => restore(snap) });
+  });
+};
+A.focusExpandOverdue = () => {
+  S.ui.focusOverdueOpen = !S.ui.focusOverdueOpen;
+  render();
+};
+A.snoozeTask = el => {
+  const t = task(el.dataset.id);
+  if (!t) return;
+  const base = t.due ? parse(t.due) : TODAY;
+  updateTask(t.id, { due: iso(addD(base, 1)) });
 };
 A.toggleFavTask = el => {
   const t = task(el.dataset.id);

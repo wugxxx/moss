@@ -1,0 +1,601 @@
+/* ============================================================
+   FOCUS (今日) — 上下流式漏斗布局
+   页头(圆环进度) → 逾期清障带(三列) → 今日执行时序流(宽卡)
+   Geometry from design; color / type scale from project tokens.
+   ============================================================ */
+.focus-cmd {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ---------------- page header ---------------- */
+.focus-ph {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--divider);
+}
+.focus-eyebrow {
+  margin: 0 0 2px;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+.focus-ph h1 {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text);
+}
+.focus-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.focus-stats-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.focus-ring-wrap {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+.focus-ring {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+.focus-ring-track {
+  stroke: var(--surface-3);
+}
+.focus-ring-fill {
+  stroke: var(--accent);
+}
+.fx-route .focus-ring-fill {
+  animation: focusRingDraw 0.8s 0.15s var(--ease) both;
+}
+@keyframes focusRingDraw {
+  from {
+    stroke-dashoffset: 88;
+  }
+}
+.focus-stats-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.3;
+}
+.focus-stats-count {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.focus-stats-rate {
+  font-size: var(--fs-2xs);
+  color: var(--text-4);
+}
+.focus-stats-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--divider);
+}
+.focus-stats-triage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.focus-triage-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* ---------------- overdue triage banner ---------------- */
+.focus-triage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--red) 22%, transparent);
+  border-radius: 14px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--red) 7%, transparent), var(--surface));
+  box-shadow: var(--shadow-sm);
+}
+.focus-triage-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px;
+}
+.focus-triage-h-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.focus-triage-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--red) 16%, transparent);
+  color: var(--red);
+}
+.focus-triage-h h2 {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--red);
+  white-space: nowrap;
+}
+.focus-triage-count {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--red) 16%, transparent);
+  color: var(--red);
+  border: 1px solid color-mix(in srgb, var(--red) 22%, transparent);
+  white-space: nowrap;
+}
+.focus-triage-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  background: var(--red);
+  color: var(--on-accent);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition:
+    filter var(--dur),
+    transform var(--dur);
+}
+.focus-triage-btn:hover {
+  filter: brightness(1.07);
+}
+.focus-triage-btn:active {
+  transform: scale(0.97);
+}
+
+.focus-triage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.focus-triage-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px 0;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.focus-triage-remain {
+  font-size: var(--fs-2xs);
+}
+.focus-triage-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--red);
+  white-space: nowrap;
+}
+.focus-triage-toggle:hover {
+  text-decoration: underline;
+}
+.focus-triage-toggle svg {
+  transition: transform var(--dur);
+}
+
+/* ---------------- triage card ---------------- */
+.fcard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--red) 14%, var(--border));
+  border-radius: var(--r-lg);
+  box-shadow: 0 1px 1px rgba(28, 25, 20, 0.03);
+  cursor: pointer;
+  transition:
+    border-color var(--dur),
+    box-shadow 0.18s var(--ease);
+}
+.fcard:hover {
+  border-color: color-mix(in srgb, var(--red) 42%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+.fcard-check {
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+.fcard .check.round,
+.lcard .check.round {
+  width: 16px;
+  height: 16px;
+}
+.fcard .check.round.urgent:not(:checked) {
+  border-color: color-mix(in srgb, var(--red) 55%, transparent);
+}
+.fcard .check.round.urgent:not(:checked):hover {
+  border-color: var(--red);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+.fcard .check.round.urgent:checked {
+  background: var(--red);
+  border-color: var(--red);
+}
+.fcard-body {
+  flex: 1;
+  min-width: 0;
+}
+.fcard-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.fcard-meta-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.fcard-sep {
+  flex-shrink: 0;
+  color: var(--border-strong);
+}
+.fcard-proj {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: var(--fs-2xs);
+  font-weight: 500;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fcard-proj .pdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.fcard-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+  background: var(--red-soft);
+  color: var(--red);
+  border: 1px solid color-mix(in srgb, var(--red) 18%, transparent);
+  white-space: nowrap;
+}
+.fcard-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--text);
+}
+.fcard-prio {
+  display: inline-flex;
+  align-items: center;
+  height: 1.45em;
+  flex-shrink: 0;
+}
+.fcard-title-txt {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.fcard-date {
+  color: var(--red);
+  font-weight: 500;
+}
+.fcard-extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: var(--fs-2xs);
+  color: var(--text-4);
+}
+.fcard-mi {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-4);
+}
+
+/* ---------------- today timeline ---------------- */
+.focus-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 4px;
+}
+.focus-tl-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--divider);
+}
+.focus-tl-h-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.focus-tl-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.focus-tl-h h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: nowrap;
+}
+.focus-tl-count {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  white-space: nowrap;
+}
+.focus-tl-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  flex-wrap: wrap;
+}
+.focus-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.focus-legend .pdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.focus-tl-block {
+  display: flex;
+  flex-direction: column;
+}
+/* Two columns on wide screens, filling left→right then top→bottom in priority order. */
+.focus-tl-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+  padding-left: 4px;
+}
+.focus-tl-list > .focus-empty {
+  grid-column: 1 / -1;
+}
+
+/* ---------------- timeline card ---------------- */
+.lcard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: 0 1px 1px rgba(28, 25, 20, 0.03);
+  cursor: pointer;
+  transition:
+    border-color var(--dur),
+    box-shadow 0.18s var(--ease);
+}
+.lcard:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+.lcard-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.lcard-main .check.round {
+  flex-shrink: 0;
+}
+.lcard-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.lcard-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.lcard-prio {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.lcard-title {
+  min-width: 0;
+  font-size: var(--fs);
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lcard-proj {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 8px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.lcard-proj .pdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.lcard-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-4);
+}
+.lcard-mi {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.lcard-desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lcard-sep {
+  color: var(--border-strong);
+  flex-shrink: 0;
+}
+.lcard.done {
+  background: var(--surface-2);
+  border-color: var(--divider);
+  box-shadow: none;
+  opacity: 0.62;
+}
+.lcard.done:hover {
+  opacity: 1;
+}
+.lcard.done .lcard-title {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-3);
+}
+
+.focus-empty {
+  margin: 0;
+  padding: 14px 4px 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+/* ---------------- completion micro-motion ---------------- */
+.fcard.fx-done,
+.lcard.fx-done {
+  animation: doneWash 1s var(--ease) both;
+}
+.fcard.fx-done .check,
+.lcard.fx-done .check {
+  animation: popCheck 0.42s var(--spring) both;
+}
+.lcard.fx-done .lcard-title {
+  text-decoration: none !important;
+  background: linear-gradient(currentColor, currentColor) 0 58%/0 1.5px no-repeat;
+  animation: strike 0.38s 0.1s var(--ease) forwards;
+}
+
+/* ---------------- responsive ---------------- */
+@media (max-width: 1024px) {
+  .focus-tl-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .focus-triage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .focus-triage-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .focus-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .lcard {
+    align-items: flex-start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) .fx-route .focus-ring-fill {
+    animation: none;
+  }
+}

@@ -1,5 +1,5 @@
 /* ---------- HOME: work overview ---------- */
-import { TODAY, diffD, dOff, esc, fmtDate, iso, parse } from '../core/utils.js';
+import { TODAY, diffD, dOff, esc, fmtDate, parse } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { allTasks, isOver, me, progressOf, tasksOf, visibleProjects } from '../core/store.js';
 import { empty, pIcon, progBar } from '../ui/helpers.js';
@@ -80,7 +80,6 @@ export function pageHome() {
         <h1>${greetHeading()}</h1>
         <p class="home-greet">${dateLine}</p>
       </div>
-      <div class="acts"><button class="btn btn-primary" data-a="newTask" data-due="${iso(TODAY)}">${ic('plus', 14)}${t('common.newTask')}</button></div>
     </div>
     <div class="home-stats">
       ${stats
