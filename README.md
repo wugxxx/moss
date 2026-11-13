@@ -2,22 +2,22 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-A calm, local-first project management workspace for solo work: home dashboard, tasks, projects
-with editable schedules and milestones, configurable workspace labels, overview / board / list /
-table / calendar / timeline / files views, calendar events, favorites, archive, global search and
-settings. The first release is
-available in English and Simplified Chinese (`zh-CN`), and treats task and event dates as local
-calendar dates without time-zone conversion.
+A calm, local-first project management workspace for solo work: a home overview, Today focus,
+tasks, completed history, projects with editable schedules and milestones, configurable workspace
+labels, overview / board / list / table / calendar / timeline / files views, calendar events,
+favorites, archive, global search and settings. The first release is available in English and
+Simplified Chinese (`zh-CN`), and treats task and event dates as local calendar dates without
+time-zone conversion.
 
 Built with plain JavaScript ES modules and CSS, bundled by [Vite](https://vite.dev). There is no
-UI framework and no runtime dependency. The web build stores data in browser `localStorage`;
-JSON export and import are available under Settings -> Data & backup. In the desktop build,
-attachment bytes are stored under the app's managed user-data directory while metadata and the
-sync outbox live in SQLite. Startup removes orphaned attachment blobs. The browser build remains
-metadata-only for attachment contents. A SQLite-backed local repository is ready for the desktop
-shell.
+UI framework; the only runtime dependency is the bundled Charter webfont. The web build stores
+data in browser `localStorage`; JSON export and import are available under Settings -> Data &
+backup. In the desktop build, attachment bytes are stored under the app's managed user-data
+directory while metadata and the sync outbox live in SQLite. Startup removes orphaned attachment
+blobs. The browser build remains metadata-only for attachment contents. A SQLite-backed local
+repository is ready for the desktop shell.
 
-![Moss home dashboard](docs/preview.png)
+![Moss home overview](docs/preview.png)
 
 ## Getting started
 
@@ -27,14 +27,14 @@ Requires Node.js 24 or newer. The desktop main process uses Node's built-in
 ```bash
 npm install
 npm run brand:assets # regenerate favicon and desktop icon from src/core/brand.js
-npm run dev       # http://localhost:5173 with hot reload
+npm run dev       # http://localhost:8080 with hot reload
 npm run build     # production build in dist/
 npm run dev:desktop # Vite renderer plus the Electron desktop shell
 npm run pack      # unpacked desktop app in release/
 npm run dist      # platform installer artefacts in release/
 npm run preview   # serve the production build locally
 npm run typecheck # strict TypeScript check for shared packages
-npm test          # client/application contract and SQLite integration tests
+npm test          # unit, contract, sync and SQLite integration tests
 npm run lint      # ESLint
 npm run format    # Prettier
 ```
@@ -44,6 +44,7 @@ npm run format    # Prettier
 ```
 index.html              HTML entry; loads src/main.js
 src/core/brand.js       single source for the Moss wordmark and app mark
+scripts/generate-brand-assets.mjs  regenerates the favicon and desktop icon
 public/favicon.svg      generated brand mark for the web favicon
 build/icon.svg          generated brand mark for desktop packaging
 vite.config.js          Vite config, including the Lucide icon-subset plugin
@@ -54,20 +55,21 @@ packages/
   contracts/            serializable entities, commands, queries, and results
   domain/                pure task and project rules
   application/           command handlers over a repository interface
-  client/                WorkspaceClient interface, memory, browser, and local adapters
-  local-db/               Node SQLite schema, migrations, repository, outbox, and sync runner
+  client/                WorkspaceClient interface, with memory, browser, local, desktop, and sync HTTP adapters
+  local-db/              Node SQLite schema, migrations, repository, outbox, importer, and sync runner
   sync-core/              transport-neutral sync protocol, validation, retries, and pull merging
   test-fixtures/         shared snapshots and entity builders
-tests/                   package-level unit tests
+tests/                   package and renderer unit tests
 src/
   main.js               entry: imports styles and modules, then boots the app
   styles/
     index.css           imports every stylesheet in cascade order
     tokens.css          colours, spacing, type, radius, the shared --gutter
+    fonts.css           bundled Charter webfont
     base.css  components.css  shell.css  panels.css  overlays.css  states.css  motion.css  responsive.css
     views/              list, board, table, calendar, timeline, projects & files
-    pages/              settings and local data tools
-  core/                 utilities, constants, icons, read store, workspace bridge, theme
+    pages/              focus and settings
+  core/                 utilities, constants, icons, read store, workspace bridge, focus stats, theme
   data/seed.js          initial empty workspace data
   i18n/                 locale registry, lookup/interpolation, pluralization, en and zh-CN catalogues
   ui/                   shared render helpers, toasts, the select dropdown
