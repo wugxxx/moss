@@ -1,7 +1,7 @@
 /* ---------- FAVORITES ---------- */
 import { allTasks, visibleProjects } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
-import { miniRow } from '../components/task-list.js';
+import { taskCard } from '../components/task-list.js';
 import { projectCard } from './projects.js';
 import { t } from '../i18n/index.js';
 
@@ -16,8 +16,8 @@ export function pageFavorites() {
         : `
     <h2 class="sec" style="margin-bottom:10px">${t('favorites.projects')} <span class="faint" style="font-weight:500">${ps.length}</span></h2>
     ${ps.length ? `<div class="pgrid" style="margin-bottom:28px">${ps.map(projectCard).join('')}</div>` : `<p class="faint" style="margin-bottom:28px">${t('favorites.noFavoriteProjects')}</p>`}
-    <h2 class="sec" style="margin-bottom:6px">${t('favorites.tasks')} <span class="faint" style="font-weight:500">${ts.length}</span></h2>
-    ${ts.length ? `<div class="panel" style="overflow:hidden">${ts.map(t => miniRow(t)).join('')}</div>` : `<p class="faint">${t('favorites.noFavoriteTasks')}</p>`}`
+    <h2 class="sec" style="margin-bottom:10px">${t('favorites.tasks')} <span class="faint" style="font-weight:500">${ts.length}</span></h2>
+    ${ts.length ? `<div class="task-card-grid">${ts.map(task => taskCard(task, { showDesc: false })).join('')}</div>` : `<p class="faint">${t('favorites.noFavoriteTasks')}</p>`}`
     }
   </div>`;
 }

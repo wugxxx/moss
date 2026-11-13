@@ -4,7 +4,7 @@
 import { ago, esc, relDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { PR, PSTAT, ST } from '../core/constants.js';
-import { S, isOver, pColor, proj, task } from '../core/store.js';
+import { S, commentsOf, isOver, pColor, proj, task } from '../core/store.js';
 import { dueHtml, empty, lbl, prIcon, prPill, stIcon, stPill } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { t as tt } from '../i18n/index.js';
@@ -193,4 +193,40 @@ export function miniRow(t, opt = {}) {
     <span data-tip="${esc(tt('common.priority') + ': ' + PR[t.priority].name)}">${prIcon(t.priority)}</span>
     <span style="width:74px;text-align:right" class="hide-m">${dueHtml(t, false)}</span>
   </div>`;
+}
+
+function descSnippet(desc) {
+  if (!desc) return '';
+  const text = desc
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > 46 ? text.slice(0, 46) + '…' : text;
+}
+
+/* Wide task card used by the today timeline and favorites grid */
+export function taskCard(t, { done = t.status === 'done', showDesc = true } = {}) {
+  const p = proj(t.project);
+  const sub = t.subtasks || [];
+  const comments = commentsOf(t.id).length;
+  const desc = showDesc ? descSnippet(t.desc) : '';
+  const meta = [];
+  if (sub.length)
+    meta.push(`<span class="lcard-mi">${ic('clipboard', 12)}${tt('home.subtasksOf', { done: sub.filter(s => s.done).length, total: sub.length })}</span>`);
+  if (comments) meta.push(`<span class="lcard-mi">${ic('message-circle', 12)}${comments}</span>`);
+  if (desc) meta.push(`<span class="lcard-desc">${esc(desc)}</span>`);
+  const metaHtml = meta.join('<span class="lcard-sep">·</span>');
+  return `<article class="lcard ${done ? 'done' : ''} ${fxc('done', t.id)}" data-a="openTask" data-id="${t.id}" data-ctx="task" role="button" tabindex="0">
+    <div class="lcard-main">
+      <input type="checkbox" class="check round" ${done ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="${esc(tt('tasks.completeTask', { title: t.title }))}">
+      <div class="lcard-text">
+        <div class="lcard-top">
+          <span class="lcard-prio">${prIcon(t.priority, 13)}</span>
+          <span class="lcard-title">${esc(t.title)}</span>
+          ${p ? `<span class="lcard-proj"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(p.name)}</span>` : ''}
+        </div>
+        ${metaHtml ? `<div class="lcard-meta">${metaHtml}</div>` : ''}
+      </div>
+    </div>
+  </article>`;
 }

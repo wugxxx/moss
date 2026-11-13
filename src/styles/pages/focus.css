@@ -426,14 +426,14 @@
   flex-direction: column;
 }
 /* Two columns on wide screens, filling left→right then top→bottom in priority order. */
-.focus-tl-list {
+.task-card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
   gap: 10px;
   padding-left: 4px;
 }
-.focus-tl-list > .focus-empty {
+.task-card-grid > .focus-empty {
   grid-column: 1 / -1;
 }
 
@@ -573,7 +573,7 @@
 
 /* ---------------- responsive ---------------- */
 @media (max-width: 1024px) {
-  .focus-tl-list {
+  .task-card-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }

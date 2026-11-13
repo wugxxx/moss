@@ -5,6 +5,7 @@ import { S, allTasks, commentsOf, pColor, proj } from '../core/store.js';
 import { focusCounts } from '../core/focus-stats.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { fxc } from '../shell/render.js';
+import { taskCard } from '../components/task-list.js';
 import { prIcon } from '../ui/helpers.js';
 import { getIntlLocale, t } from '../i18n/index.js';
 
@@ -13,15 +14,6 @@ const OVERDUE_LIMIT = 3;
 function dueLabel(task) {
   if (!task.due) return '';
   return new Intl.DateTimeFormat(getIntlLocale(), { month: 'long', day: 'numeric' }).format(parse(task.due));
-}
-
-function descSnippet(desc) {
-  if (!desc) return '';
-  const text = desc
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return text.length > 46 ? text.slice(0, 46) + '…' : text;
 }
 
 /* Compact overdue card: 行1 元信息 · 行2 标题(可换行) · 行3+ 子任务/评论 */
@@ -50,33 +42,6 @@ function triageCard(task) {
       </div>
       <p class="fcard-title"><span class="fcard-prio">${prIcon(task.priority, 13)}</span><span class="fcard-title-txt">${esc(task.title)}</span></p>
       ${extra.length ? `<div class="fcard-extra">${extra.join('<span class="fcard-sep">·</span>')}</div>` : ''}
-    </div>
-  </article>`;
-}
-
-/* Wide card in the today timeline */
-function timelineCard(task, { done = false } = {}) {
-  const p = proj(task.project);
-  const sub = task.subtasks || [];
-  const comments = commentsOf(task.id).length;
-  const desc = descSnippet(task.desc);
-  const meta = [];
-  if (sub.length)
-    meta.push(`<span class="lcard-mi">${ic('clipboard', 12)}${t('home.subtasksOf', { done: sub.filter(s => s.done).length, total: sub.length })}</span>`);
-  if (comments) meta.push(`<span class="lcard-mi">${ic('message-circle', 12)}${comments}</span>`);
-  if (desc) meta.push(`<span class="lcard-desc">${esc(desc)}</span>`);
-  const metaHtml = meta.join('<span class="lcard-sep">·</span>');
-  return `<article class="lcard ${done ? 'done' : ''} ${fxc('done', task.id)}" data-a="openTask" data-id="${task.id}" data-ctx="task" role="button" tabindex="0">
-    <div class="lcard-main">
-      <input type="checkbox" class="check round" ${done ? 'checked' : ''} data-a="toggleDone" data-id="${task.id}" aria-label="${esc(t('tasks.completeTask', { title: task.title }))}">
-      <div class="lcard-text">
-        <div class="lcard-top">
-          <span class="lcard-prio">${prIcon(task.priority, 13)}</span>
-          <span class="lcard-title">${esc(task.title)}</span>
-          ${p ? `<span class="lcard-proj"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(p.name)}</span>` : ''}
-        </div>
-        ${metaHtml ? `<div class="lcard-meta">${metaHtml}</div>` : ''}
-      </div>
     </div>
   </article>`;
 }
@@ -164,9 +129,9 @@ export function pageFocus() {
         ${legend.length ? `<div class="focus-tl-legend">${legend.map(p => `<span class="focus-legend"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(p.name)}</span>`).join('')}</div>` : ''}
       </div>
       <div class="focus-tl-block">
-        <div class="focus-tl-list">
-          ${todayOpen.length ? todayOpen.map(t => timelineCard(t)).join('') : todayDone.length ? '' : `<p class="focus-empty">${t('home.colEmptyToday')}</p>`}
-          ${todayDone.length ? todayDone.map(t => timelineCard(t, { done: true })).join('') : ''}
+        <div class="task-card-grid">
+          ${todayOpen.length ? todayOpen.map(t => taskCard(t)).join('') : todayDone.length ? '' : `<p class="focus-empty">${t('home.colEmptyToday')}</p>`}
+          ${todayDone.length ? todayDone.map(t => taskCard(t, { done: true })).join('') : ''}
         </div>
       </div>
     </section>
