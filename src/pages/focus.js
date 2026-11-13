@@ -1,7 +1,8 @@
 /* ---------- FOCUS (今日) — 上下流式漏斗布局 ---------- */
 import { TODAY, diffD, esc, parse, weekdayLong } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { S, allTasks, commentsOf, isOver, pColor, proj } from '../core/store.js';
+import { S, allTasks, commentsOf, pColor, proj } from '../core/store.js';
+import { focusCounts } from '../core/focus-stats.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { fxc } from '../shell/render.js';
 import { prIcon } from '../ui/helpers.js';
@@ -81,19 +82,13 @@ function timelineCard(task, { done = false } = {}) {
 }
 
 export function pageFocus() {
-  const open = allTasks().filter(t => t.status !== 'done');
-  const overdue = sortTasks(open.filter(isOver), { f: 'due', dir: 1 });
-  const todayOpen = sortTasks(
-    open.filter(t => t.due && diffD(parse(t.due), TODAY) === 0),
-    { f: 'priority', dir: 1 },
-  );
-  const todayDone = sortTasks(
-    allTasks().filter(t => t.status === 'done' && t.due && diffD(parse(t.due), TODAY) === 0),
-    { f: 'priority', dir: 1 },
-  );
+  const counts = focusCounts(allTasks(), TODAY);
+  const overdue = sortTasks(counts.overdue, { f: 'due', dir: 1 });
+  const todayOpen = sortTasks(counts.todayOpen, { f: 'priority', dir: 1 });
+  const todayDone = sortTasks(counts.todayDone, { f: 'priority', dir: 1 });
 
-  const total = overdue.length + todayOpen.length + todayDone.length;
-  const done = todayDone.length;
+  const total = counts.total;
+  const done = counts.done;
   const rate = total ? Math.round((done / total) * 100) : 0;
   const offset = +(88 * (1 - rate / 100)).toFixed(1);
   const dateLine = `${new Intl.DateTimeFormat(getIntlLocale(), { month: 'long', day: 'numeric' }).format(TODAY)} · ${weekdayLong(TODAY.getDay())}`;
