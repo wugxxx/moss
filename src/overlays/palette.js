@@ -17,6 +17,7 @@ export function commands() {
   return [
     { id: 'c-task', name: tr('palette.createTask'), icon: 'plus', kbd: 'N', run: () => A.newTask(document.body) },
     { id: 'c-proj', name: tr('palette.createProject'), icon: 'folder-plus', kbd: 'P', run: () => A.newProject() },
+    { id: 'c-note', name: tr('notes.new'), icon: 'sticky-note', run: () => A.newNote() },
     {
       id: 'c-search',
       name: tr('palette.searchWorkspace'),
@@ -29,6 +30,7 @@ export function commands() {
     },
     { id: 'c-home', name: tr('palette.goHome'), icon: 'house', kbd: 'G H', run: () => go('home') },
     { id: 'c-tasks', name: tr('palette.goTasks'), icon: 'circle-check', kbd: 'G T', run: () => go('tasks') },
+    { id: 'c-notes', name: tr('palette.goNotes'), icon: 'sticky-note', run: () => go('notes') },
     { id: 'c-projs', name: tr('palette.goProjects'), icon: 'folder-kanban', kbd: 'G P', run: () => go('projects') },
     { id: 'c-cal', name: tr('palette.goCalendar'), icon: 'calendar', kbd: 'G C', run: () => go('calendar') },
     { id: 'c-tl', name: tr('palette.goTimeline'), icon: 'chart-gantt', run: () => go('timeline') },
@@ -69,7 +71,10 @@ export function paletteItems() {
           run: () => A.openTask({ dataset: { id: t.id } }),
         })),
       });
-      groups.push({ name: tr('palette.navigation'), items: cmds.filter(c => ['c-home', 'c-tasks', 'c-projs', 'c-cal', 'c-tl', 'c-set'].includes(c.id)) });
+      groups.push({
+        name: tr('palette.navigation'),
+        items: cmds.filter(c => ['c-home', 'c-tasks', 'c-notes', 'c-projs', 'c-cal', 'c-tl', 'c-set'].includes(c.id)),
+      });
       return groups;
     }
     if (cmds.length) groups.push({ name: tr('palette.commands'), items: cmds.slice(0, 5) });

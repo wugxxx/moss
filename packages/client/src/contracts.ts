@@ -20,7 +20,7 @@ export interface WorkspaceClient {
   retryFailed?(): Promise<SyncStatus>;
   getSyncStatus(): SyncStatus | Promise<SyncStatus>;
   onSyncStatus?(listener: (status: SyncStatus) => void): () => void;
-  onChangePending?(listener: () => void): () => void;
+  onChangePending?(listener: () => void | Promise<void>): () => void;
   snapshot(): WorkspaceSnapshot;
   replaceSnapshot(snapshot: WorkspaceSnapshot): Promise<void>;
 }

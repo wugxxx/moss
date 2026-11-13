@@ -7,7 +7,7 @@ import { t } from '../i18n/index.js';
 
 export function searchAll(q, includeArchived = S.ui.searchArchived) {
   q = (q || '').trim().toLowerCase();
-  if (!q) return { tasks: [], projects: [], files: [] };
+  if (!q) return { tasks: [], projects: [], files: [], notes: [] };
   const has = s => (s || '').toLowerCase().includes(q);
   const tasks = includeArchived ? D().tasks : allTasks();
   const projects = includeArchived ? D().projOrder.map(proj).filter(Boolean) : visibleProjects();
@@ -16,6 +16,7 @@ export function searchAll(q, includeArchived = S.ui.searchArchived) {
     tasks: tasks.filter(t => has(t.title) || has(t.key) || has(t.desc.replace(/<[^>]+>/g, ''))).slice(0, 30),
     projects: projects.filter(p => has(p.name) || has(p.desc)),
     files: files.filter(f => has(f.name)),
+    notes: D().notes.filter(note => has(note.body)),
   };
 }
 export function pageSearch() {
@@ -28,6 +29,7 @@ export function pageSearch() {
     ['tasks', t('search.categories.tasks')],
     ['projects', t('search.categories.projects')],
     ['files', t('search.categories.files')],
+    ['notes', t('search.categories.notes')],
   ];
   const total = Object.values(r).reduce((a, b) => a + b.length, 0);
   const sec = (k, title, html) =>
@@ -53,6 +55,16 @@ export function pageSearch() {
                 .map(
                   t =>
                     `<div class="mini" data-a="openTask" data-id="${t.id}">${stIcon(t.status)}<span class="mono faint" style="font-size:11px">${t.key}</span><span class="tt">${hl(t.title, q)}</span><span class="pj"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span>${esc(proj(t.project).name)}</span></div>`,
+                )
+                .join(''),
+            ) +
+            sec(
+              'notes',
+              t('search.categories.notes'),
+              r.notes
+                .map(
+                  note =>
+                    `<div class="mini" data-a="showNote" data-id="${note.id}">${ic('sticky-note', 15)}<span class="tt">${hl(note.body.split('\n')[0], q)}</span></div>`,
                 )
                 .join(''),
             ) +

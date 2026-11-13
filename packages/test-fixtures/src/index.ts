@@ -78,6 +78,7 @@ export function snapshotFixture(): WorkspaceSnapshot {
     events: [],
     projOrder: ['project-1'],
     savedViews: [],
+    notes: [],
     recentSearches: [],
     sessions: [],
     invoices: [],

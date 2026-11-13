@@ -37,6 +37,31 @@ function createClient(path: string, snapshot?: WorkspaceSnapshot) {
 }
 
 describe('SQLite workspace store', () => {
+  it('persists notes and their task links across a database reopen', async () => {
+    const path = databasePath();
+    const first = createClient(path);
+    const created = await first.client.execute({
+      ...commandContext(first.repository.workspaceId),
+      type: 'note.create',
+      payload: { body: 'Persistent thought' },
+    });
+    if (!created.ok) throw new Error('Expected note creation to succeed');
+    const converted = await first.client.execute({
+      ...commandContext(first.repository.workspaceId),
+      type: 'note.convert',
+      entityId: created.affected.ids[0]!,
+      payload: { projectId: 'project-1' },
+    });
+    expect(converted.ok).toBe(true);
+    first.db.close();
+
+    const second = createClient(path);
+    expect(second.client.snapshot().notes).toHaveLength(1);
+    expect(second.client.snapshot().notes[0]).toMatchObject({ body: 'Persistent thought' });
+    expect(second.client.snapshot().tasks.find(task => task.id === second.client.snapshot().notes[0]?.task)?.title).toBe('Persistent thought');
+    second.db.close();
+  });
+
   it('composes the desktop local client from durable storage', async () => {
     const db = openDatabase({ path: databasePath() });
     const workspace = createSqliteWorkspace(db, { initialSnapshot: snapshotFixture() });

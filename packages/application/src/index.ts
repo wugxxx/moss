@@ -131,7 +131,12 @@ function nextTaskKey(project: Project, snapshot: WorkspaceSnapshot): string {
 }
 
 function revision(snapshot: WorkspaceSnapshot): number {
-  return Math.max(0, ...snapshot.tasks.map(task => task.revision), ...snapshot.projects.map(project => project.revision));
+  return Math.max(
+    0,
+    ...snapshot.tasks.map(task => task.revision),
+    ...snapshot.projects.map(project => project.revision),
+    ...snapshot.notes.map(note => note.revision),
+  );
 }
 
 function touchTask(task: Task): Task {
@@ -140,6 +145,14 @@ function touchTask(task: Task): Task {
 
 function touchProject(project: Project): Project {
   return { ...project, last: now(), revision: project.revision + 1 };
+}
+
+function noteParts(body: string): { title: string; desc: string } {
+  const normalized = body.replace(/\r\n?/g, '\n').trim();
+  const [first = '', ...rest] = normalized.split('\n');
+  const title = first.trim().slice(0, 160);
+  const desc = rest.join('\n').trim() || (first.length > 160 ? first.slice(160).trim() : '');
+  return { title, desc };
 }
 
 function appendActivity(
@@ -400,8 +413,51 @@ export class WorkspaceApplication {
     }
   }
 
-  private apply(snapshot: WorkspaceSnapshot, command: WorkspaceCommand): { type: 'task' | 'project' | 'workspace'; ids: EntityId[] } {
+  private apply(snapshot: WorkspaceSnapshot, command: WorkspaceCommand): { type: 'task' | 'project' | 'note' | 'workspace'; ids: EntityId[] } {
     switch (command.type) {
+      case 'note.create': {
+        const body = command.payload.body?.replace(/\r\n?/g, '\n').trim() ?? '';
+        if (body.length > 100_000) throw new Error('Note content is too long');
+        const note = { id: nextId(), body, task: null, created: now(), updated: now(), revision: 0 };
+        snapshot.notes.unshift(note);
+        return { type: 'note', ids: [note.id] };
+      }
+      case 'note.patch': {
+        const note = snapshot.notes.find(item => item.id === command.entityId);
+        if (!note) throw new Error(`Note ${command.entityId} was not found`);
+        const body = command.payload.body.replace(/\r\n?/g, '\n').trim();
+        if (body.length > 100_000) throw new Error('Note content is too long');
+        Object.assign(note, { body, updated: now(), revision: note.revision + 1 });
+        return { type: 'note', ids: [note.id] };
+      }
+      case 'note.delete': {
+        if (!snapshot.notes.some(note => note.id === command.entityId)) throw new Error(`Note ${command.entityId} was not found`);
+        snapshot.notes = snapshot.notes.filter(note => note.id !== command.entityId);
+        return { type: 'note', ids: [command.entityId] };
+      }
+      case 'note.convert': {
+        const note = snapshot.notes.find(item => item.id === command.entityId);
+        if (!note) throw new Error(`Note ${command.entityId} was not found`);
+        if (note.task) {
+          if (command.payload.deleteAfter) snapshot.notes = snapshot.notes.filter(item => item.id !== note.id);
+          return { type: 'note', ids: [note.id, note.task] };
+        }
+        const { title, desc } = noteParts(note.body);
+        if (!title) throw new Error('Note content is required');
+        const project = projectById(snapshot, command.payload.projectId);
+        if (project.archived) throw new Error('Cannot create a task in an archived project');
+        const task = createTaskRecord(snapshot, project, {
+          title,
+          desc: desc
+            .split(/\n{2,}/)
+            .map(part => `<p>${part.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>`)
+            .join(''),
+        });
+        if (command.payload.deleteAfter) snapshot.notes = snapshot.notes.filter(item => item.id !== note.id);
+        else Object.assign(note, { task: task.id, updated: now(), revision: note.revision + 1 });
+        appendActivity(snapshot, { verb: 'created from note', task });
+        return { type: 'note', ids: [note.id, task.id] };
+      }
       case 'task.create': {
         const project = projectById(snapshot, command.payload.projectId);
         const task = createTaskRecord(snapshot, project, command.payload);
@@ -468,6 +524,9 @@ export class WorkspaceApplication {
           task.deps = task.deps.filter(id => !ids.has(id));
         });
         snapshot.comments = snapshot.comments.filter(comment => !ids.has(comment.task));
+        snapshot.notes.forEach(note => {
+          if (note.task && ids.has(note.task)) note.task = null;
+        });
         return { type: 'task', ids: [command.entityId] };
       }
       case 'task.bulkPatch': {
@@ -488,6 +547,9 @@ export class WorkspaceApplication {
           task.deps = task.deps.filter(id => !ids.has(id));
         });
         snapshot.comments = snapshot.comments.filter(comment => !ids.has(comment.task));
+        snapshot.notes.forEach(note => {
+          if (note.task && ids.has(note.task)) note.task = null;
+        });
         return { type: 'task', ids: command.payload.ids };
       }
       case 'task.batchMove': {
@@ -595,6 +657,9 @@ export class WorkspaceApplication {
         snapshot.tasks = snapshot.tasks.filter(task => !taskIds.has(task.id));
         snapshot.comments = snapshot.comments.filter(comment => !taskIds.has(comment.task));
         snapshot.files = snapshot.files.filter(file => file.project !== project.id);
+        snapshot.notes.forEach(note => {
+          if (note.task && taskIds.has(note.task)) note.task = null;
+        });
         snapshot.projects = snapshot.projects.filter(item => item.id !== project.id);
         snapshot.projOrder = snapshot.projOrder.filter(id => id !== project.id);
         return { type: 'project', ids: [project.id] };

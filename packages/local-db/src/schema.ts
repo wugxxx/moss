@@ -189,6 +189,26 @@ export const migrations: readonly Migration[] = [
         ON sync_outbox(workspace_id, state, retry_at, local_sequence);
     `,
   },
+  {
+    version: 3,
+    name: 'workspace_notes',
+    sql: `
+      CREATE TABLE notes (
+        id TEXT PRIMARY KEY,
+        workspace_id TEXT NOT NULL,
+        data TEXT NOT NULL,
+        body_text TEXT NOT NULL DEFAULT '',
+        task_id TEXT,
+        deleted_at TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        revision INTEGER NOT NULL DEFAULT 0
+      ) STRICT;
+
+      CREATE INDEX notes_by_workspace
+        ON notes(workspace_id, deleted_at, updated_at DESC, id);
+    `,
+  },
 ];
 
 export function migrate(db: DatabaseSync): number {

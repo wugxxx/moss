@@ -19,6 +19,9 @@ export const ROUTE_NAMES = {
   get focus() {
     return t('nav.focus');
   },
+  get notes() {
+    return t('nav.notes');
+  },
   get favorites() {
     return t('nav.favorites');
   },
@@ -47,6 +50,7 @@ export const ROUTE_NAMES = {
 export const ROUTE_ICONS = {
   home: 'house',
   focus: 'target',
+  notes: 'sticky-note',
   favorites: 'star',
   completed: 'circle-check',
   search: 'search',
@@ -112,6 +116,7 @@ export function tryFocus(key) {
 }
 export function pageTitle() {
   const u = S.ui;
+  if (u.noteWindow) return `${t('nav.notes')} · ${D().ws.name}`;
   let title = ROUTE_NAMES[u.route] || t('nav.notFound');
   if (u.route === 'project' && proj(u.params.id))
     title = `${(projectTabs().find(x => x[0] === u.params.tab) || [0, t('common.savedView')])[1]} · ${proj(u.params.id).name}`;

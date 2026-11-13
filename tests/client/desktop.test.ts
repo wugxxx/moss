@@ -92,20 +92,47 @@ describe('DesktopWorkspaceClient', () => {
     client.dispose();
   });
 
-  it('notifies the renderer while a broadcast snapshot is being refreshed', async () => {
+  it('notifies the renderer after a broadcast snapshot is refreshed', async () => {
     const fake = bridge();
     const client = new DesktopWorkspaceClient(fake.bridge);
     await client.initialize();
+    const changed = snapshotFixture();
+    changed.tasks[0]!.title = 'Changed elsewhere';
+    fake.setSnapshot(changed);
     let pending = 0;
     client.onChangePending(() => {
       pending += 1;
+      expect(client.snapshot().tasks[0]?.title).toBe('Changed elsewhere');
     });
 
     fake.notifyChange({ state: 'syncing', pending: 0, configured: true });
     await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(pending).toBe(1);
-    expect(client.snapshot().tasks[0]?.title).toBe('Test task');
+    expect(client.snapshot().tasks[0]?.title).toBe('Changed elsewhere');
+    client.dispose();
+  });
+
+  it('flushes pending note edits on the refreshed snapshot', async () => {
+    const fake = bridge();
+    const client = new DesktopWorkspaceClient(fake.bridge);
+    await client.initialize();
+    const changed = snapshotFixture();
+    changed.tasks[0]!.title = 'Saved before refresh';
+    fake.setSnapshot(changed);
+    const order: string[] = [];
+    client.onChangePending(async () => {
+      order.push('flush:start');
+      await new Promise(resolve => setTimeout(resolve, 10));
+      expect(client.snapshot().tasks[0]?.title).toBe('Saved before refresh');
+      order.push('flush:end');
+    });
+
+    fake.notifyChange({ state: 'local', pending: 0, configured: true });
+    await new Promise(resolve => setTimeout(resolve, 30));
+
+    expect(order).toEqual(['flush:start', 'flush:end']);
+    expect(client.snapshot().tasks[0]?.title).toBe('Saved before refresh');
     client.dispose();
   });
 });

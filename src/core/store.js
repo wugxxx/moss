@@ -73,6 +73,8 @@ export const S = {
     searchQ: '',
     searchCat: 'all',
     searchArchived: false,
+    noteQuery: '',
+    pinnedNotes: new Set(),
     collapsedCols: {},
     errors: {},
   },

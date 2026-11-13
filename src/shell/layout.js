@@ -19,10 +19,12 @@ import { pageProject } from '../pages/project.js';
 import { pageWsCalendar } from '../views/calendar.js';
 import { pageWsTimeline } from '../views/timeline.js';
 import { pageSettings } from '../pages/settings.js';
+import { floatingNote, pageNotes } from '../pages/notes.js';
 import { t } from '../i18n/index.js';
 
 export function renderShell() {
   const u = S.ui;
+  if (u.noteWindow) return floatingNote(D().notes.find(note => note.id === u.noteWindow));
   return `<button class="skip" data-a="skipToContent">${t('nav.skipToContent')}</button><div class="shell ${u.collapsed ? 'collapsed' : ''} ${u.mnav ? 'mnav' : ''} ${u.fx.tabs ? 'fx-tabs' : ''}">
     ${renderAppbar()}
     ${renderSidebar()}
@@ -48,6 +50,7 @@ export function renderPage() {
       calendar: pageWsCalendar,
       timeline: pageWsTimeline,
       settings: pageSettings,
+      notes: pageNotes,
     };
     return (P[r] || page404)();
   } catch (e) {
@@ -89,6 +92,7 @@ export function renderSidebar() {
         <div class="sgroup-h">${t('nav.work')}</div>
         ${sItem('tasks', t('nav.tasks'), 'list-checks')}
         ${sItem('projects', t('nav.projects'), 'folder-kanban')}
+        ${sItem('notes', t('nav.notes'), 'sticky-note')}
         ${sItem('calendar', t('nav.calendar'), 'calendar')}
         ${sItem('timeline', t('nav.timeline'), 'chart-gantt')}
       </div>
@@ -146,6 +150,7 @@ export function renderAppbar() {
     calendar: 'calendar',
     timeline: 'chart-gantt',
     settings: 'settings',
+    notes: 'sticky-note',
   };
   const label = p?.name || ROUTE_NAMES[u.route] || t('nav.notFound');
   const icon = p ? `<span class="appbar-pico" style="--c:${pColor(p)}">${ic(p.icon, 12)}</span>` : ic(routeIcons[u.route] || 'house', 14);

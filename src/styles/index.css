@@ -15,5 +15,6 @@
 @import './states.css';
 @import './pages/settings.css';
 @import './pages/focus.css';
+@import './pages/notes.css';
 @import './motion.css';
 @import './responsive.css';

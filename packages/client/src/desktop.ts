@@ -2,6 +2,8 @@ import type { ChangeSet, CommandResult, WorkspaceCommand, WorkspaceQuery, Worksp
 import type { AttachmentStorage } from './attachments.js';
 import type { SyncStatus, WorkspaceClient } from './contracts.js';
 
+export type DesktopNoteAction = 'convert' | 'delete';
+
 export interface DesktopWorkspaceBridge {
   snapshot(): Promise<WorkspaceSnapshot>;
   replaceSnapshot(snapshot: WorkspaceSnapshot): Promise<WorkspaceSnapshot>;
@@ -17,6 +19,18 @@ export interface DesktopWorkspaceBridge {
 export interface DesktopAppBridge extends DesktopWorkspaceBridge {
   platform: string;
   attachments: AttachmentStorage;
+  notes: {
+    create(): Promise<string>;
+    setPinned(id: string, pinned: boolean): Promise<void>;
+    close(id: string): Promise<void>;
+    getPinned(): Promise<string[]>;
+    getShortcut(): Promise<string>;
+    setShortcut(shortcut: string): Promise<boolean>;
+    showMain(hash?: string): Promise<void>;
+    requestAction(action: DesktopNoteAction, id: string): Promise<void>;
+    onActionRequested(callback: (action: DesktopNoteAction, id: string) => void): () => void;
+    onChanged(callback: (ids: string[]) => void): () => void;
+  };
 }
 
 export class DesktopWorkspaceClient implements WorkspaceClient {
@@ -24,7 +38,7 @@ export class DesktopWorkspaceClient implements WorkspaceClient {
   private syncStatus: SyncStatus = { state: 'offline', pending: 0 };
   private readonly listeners = new Set<(change: ChangeSet) => void>();
   private readonly statusListeners = new Set<(status: SyncStatus) => void>();
-  private readonly changePendingListeners = new Set<() => void>();
+  private readonly changePendingListeners = new Set<() => void | Promise<void>>();
   private unsubscribe?: () => void;
 
   constructor(private readonly bridge: DesktopWorkspaceBridge) {}
@@ -35,8 +49,7 @@ export class DesktopWorkspaceClient implements WorkspaceClient {
     this.unsubscribe = this.bridge.onChanged(status => {
       this.syncStatus = status;
       this.notifyStatus(status);
-      this.notifyChangePending();
-      void this.refresh();
+      void this.refresh().then(() => this.notifyChangePending());
     });
     return this.snapshotCache;
   }
@@ -84,7 +97,7 @@ export class DesktopWorkspaceClient implements WorkspaceClient {
     return () => this.statusListeners.delete(listener);
   }
 
-  onChangePending(listener: () => void): () => void {
+  onChangePending(listener: () => void | Promise<void>): () => void {
     this.changePendingListeners.add(listener);
     return () => this.changePendingListeners.delete(listener);
   }
@@ -117,7 +130,7 @@ export class DesktopWorkspaceClient implements WorkspaceClient {
     this.statusListeners.forEach(listener => listener(status));
   }
 
-  private notifyChangePending(): void {
-    this.changePendingListeners.forEach(listener => listener());
+  private async notifyChangePending(): Promise<void> {
+    await Promise.all([...this.changePendingListeners].map(listener => listener()));
   }
 }

@@ -252,6 +252,14 @@ export type WorkspaceCommand =
   | CommentCommand
   | EventCommand
   | LabelCommand
+  | (CommandContext & { type: 'note.create'; payload: { body?: string } })
+  | (CommandContext & { type: 'note.patch'; entityId: EntityId; payload: { body: string } })
+  | (CommandContext & { type: 'note.delete'; entityId: EntityId; payload: Record<string, never> })
+  | (CommandContext & {
+      type: 'note.convert';
+      entityId: EntityId;
+      payload: { projectId: EntityId; deleteAfter?: boolean };
+    })
   | (CommandContext & {
       type: 'member.patch';
       entityId: EntityId;
@@ -266,7 +274,7 @@ export type CommandResult =
   | {
       ok: true;
       commandId: string;
-      affected: { type: 'task' | 'project' | 'workspace'; ids: EntityId[] };
+      affected: { type: 'task' | 'project' | 'note' | 'workspace'; ids: EntityId[] };
       revision: number;
     }
   | {

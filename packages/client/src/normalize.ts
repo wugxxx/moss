@@ -67,6 +67,14 @@ export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapsho
         return values.length ? [{ ...filter, v: values }] : [];
       }),
     })),
+    notes: (copy.notes ?? []).map(note => ({
+      id: note.id,
+      body: note.body ?? '',
+      task: note.task ?? null,
+      created: note.created,
+      updated: note.updated,
+      revision: finiteRevision(note.revision),
+    })),
     recentSearches: copy.recentSearches ?? [],
     sessions: copy.sessions ?? [],
     invoices: copy.invoices ?? [],

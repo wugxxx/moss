@@ -6,6 +6,7 @@ import type {
   CommandResult,
   FileRecord,
   Member,
+  Note,
   Project,
   SavedView,
   Task,
@@ -135,6 +136,7 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
       events: settings.get('events') ?? metadata.events ?? [],
       projOrder,
       savedViews: this.rows('saved_views').map(row => parseRow<SavedView>(row as unknown as EntityRow)),
+      notes: this.rows('notes').map(row => parseRow<Note>(row as unknown as EntityRow)),
       recentSearches: settings.get('recentSearches') ?? metadata.recentSearches ?? [],
       sessions: metadata.sessions ?? [],
       invoices: metadata.invoices ?? [],
@@ -229,8 +231,17 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
     return transaction(this.db, run);
   }
 
-  private rows(table: 'tasks' | 'projects' | 'members' | 'comments' | 'files' | 'activity' | 'saved_views'): EntityRow[] {
-    const order = table === 'activity' ? 'created_at DESC, id' : table === 'projects' ? 'rank, id' : table === 'tasks' ? 'rank, id' : 'id';
+  private rows(table: 'tasks' | 'projects' | 'members' | 'comments' | 'files' | 'activity' | 'saved_views' | 'notes'): EntityRow[] {
+    const order =
+      table === 'activity'
+        ? 'created_at DESC, id'
+        : table === 'projects'
+          ? 'rank, id'
+          : table === 'tasks'
+            ? 'rank, id'
+            : table === 'notes'
+              ? 'updated_at DESC, id'
+              : 'id';
     const columns = table === 'activity' ? 'id, data, 0 AS revision' : 'id, data, revision';
     return this.db
       .prepare(
@@ -303,6 +314,7 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
       task_id: file.task ?? null,
     }));
     this.syncTable('saved_views', snapshot.savedViews, snapshot, at, view => ({ project_id: view.project }));
+    this.syncTable('notes', snapshot.notes, snapshot, at, note => ({ body_text: note.body, task_id: note.task }));
 
     this.db.prepare('DELETE FROM activity WHERE workspace_id = ?').run(this.workspaceId);
     const activity = this.db.prepare('INSERT INTO activity (id, workspace_id, project_id, task_id, data, created_at) VALUES (?, ?, ?, ?, ?, ?)');
@@ -332,7 +344,12 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
       invoices: snapshot.invoices,
       tfa: snapshot.tfa,
     });
-    const revision = Math.max(0, ...snapshot.tasks.map(task => task.revision), ...snapshot.projects.map(project => project.revision));
+    const revision = Math.max(
+      0,
+      ...snapshot.tasks.map(task => task.revision),
+      ...snapshot.projects.map(project => project.revision),
+      ...snapshot.notes.map(note => note.revision),
+    );
     const updated = this.db
       .prepare(
         `UPDATE workspaces
@@ -380,7 +397,7 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
   }
 
   private syncTable<T extends { id: string; revision?: number }>(
-    table: 'members' | 'projects' | 'tasks' | 'comments' | 'files' | 'saved_views',
+    table: 'members' | 'projects' | 'tasks' | 'comments' | 'files' | 'saved_views' | 'notes',
     records: T[],
     snapshot: WorkspaceSnapshot,
     at: string,
@@ -491,7 +508,7 @@ export class SqliteWorkspaceRepository implements WorkspaceRepository {
       { revision: number; data: string } | undefined;
     if (existing && Number(existing.revision) > revision) return;
 
-    const normalized = { ...value, id, ...(entity === 'project' || entity === 'task' ? { revision } : {}) };
+    const normalized = { ...value, id, ...(entity === 'project' || entity === 'task' || entity === 'note' ? { revision } : {}) };
     const fields = remoteColumns(entity, normalized);
     const columns = ['id', 'workspace_id', 'data', 'deleted_at', 'created_at', 'updated_at', 'revision', ...Object.keys(fields)];
     const values = [
@@ -589,7 +606,7 @@ function validateSyncChange(change: SyncChange): void {
   if (!Number.isSafeInteger(change.sequence) || change.sequence < 1) throw new Error('Invalid sync sequence');
   if (!Number.isSafeInteger(change.revision) || change.revision < 0) throw new Error('Invalid sync revision');
   if (typeof change.id !== 'string' || !change.id) throw new Error('Invalid sync entity id');
-  if (!['workspace', 'member', 'project', 'task', 'comment', 'file', 'savedView'].includes(change.entity)) throw new Error('Invalid sync entity type');
+  if (!['workspace', 'member', 'project', 'task', 'comment', 'file', 'savedView', 'note'].includes(change.entity)) throw new Error('Invalid sync entity type');
   if (change.type === 'delete' && change.entity === 'workspace') throw new Error('Remote workspace deletion is not supported');
 }
 
@@ -610,6 +627,7 @@ function remoteColumns(entity: Exclude<SyncEntityKind, 'workspace'>, value: Reco
     };
   }
   if (entity === 'savedView') return { project_id: typeof value.project === 'string' ? value.project : null };
+  if (entity === 'note') return { body_text: typeof value.body === 'string' ? value.body : '', task_id: typeof value.task === 'string' ? value.task : null };
   return {};
 }
 

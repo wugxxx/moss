@@ -57,6 +57,26 @@ export const sel = (k, opts, v) =>
     })
     .join('')}</select>`;
 
+function accelKeys(shortcut) {
+  const mac = window.mossDesktop?.platform === 'darwin' || /Mac/i.test(navigator.platform);
+  const labels = {
+    CommandOrControl: mac ? '⌘' : 'Ctrl',
+    CmdOrCtrl: mac ? '⌘' : 'Ctrl',
+    Command: mac ? '⌘' : 'Ctrl',
+    Cmd: mac ? '⌘' : 'Ctrl',
+    Control: mac ? '⌃' : 'Ctrl',
+    Ctrl: mac ? '⌃' : 'Ctrl',
+    Alt: mac ? '⌥' : 'Alt',
+    Option: mac ? '⌥' : 'Alt',
+    Shift: 'Shift',
+  };
+  return (shortcut || '')
+    .split('+')
+    .filter(Boolean)
+    .map(key => `<kbd>${esc(labels[key] || key)}</kbd>`)
+    .join('');
+}
+
 export function pageSettings() {
   const sec = S.ui.params.sec || S.ui.settings || 'appearance';
   return `<div class="set">
@@ -237,6 +257,9 @@ export function settingsBody(sec) {
     case 'shortcuts':
       return (
         H(t('settings.shortcutsLead')) +
+        (window.mossDesktop?.notes
+          ? `<div class="sblock" style="margin-top:18px"><h2>${t('nav.notes')}</h2><div class="srow" style="padding:9px 0"><span>${t('notes.globalShortcut')}</span><span class="row" style="gap:4px">${accelKeys(S.ui.noteShortcut)}</span></div></div>`
+          : '') +
         SHORTCUTS.map(
           ([g, list]) =>
             `<div class="sblock" style="margin-top:18px"><h2>${t(g)}</h2>${list.map(([n, k]) => `<div class="srow" style="padding:9px 0"><span>${t(n)}</span><span class="row" style="gap:4px">${k.map((x, i) => `${i && k[0] === 'G' ? `<span class="faint" style="font-size:11px">${t('settings.then')}</span>` : ''}<kbd>${x}</kbd>`).join('')}</span></div>`).join('')}</div>`,

@@ -5,6 +5,103 @@ import { WorkspaceApplication, type WorkspaceCommitContext, type WorkspaceReposi
 import { snapshotFixture, taskFixture } from '@moss/test-fixtures';
 
 describe('MemoryWorkspaceClient', () => {
+  it('creates, edits, and atomically converts a note while retaining its task link', async () => {
+    const client = new MemoryWorkspaceClient(snapshotFixture());
+    const created = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'note.create',
+      payload: { body: 'Call the supplier\n\nConfirm <quantity> & delivery date' },
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const noteId = created.affected.ids[0]!;
+
+    await client.execute({ ...commandContext('workspace-1'), type: 'note.patch', entityId: noteId, payload: { body: 'Call supplier\nConfirm delivery' } });
+    const converted = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'note.convert',
+      entityId: noteId,
+      payload: { projectId: 'project-1' },
+    });
+    expect(converted.ok).toBe(true);
+    if (!converted.ok) return;
+    const taskId = converted.affected.ids[1]!;
+    expect(client.snapshot().tasks.find(task => task.id === taskId)).toMatchObject({
+      title: 'Call supplier',
+      desc: '<p>Confirm delivery</p>',
+      status: 'todo',
+      priority: 'none',
+    });
+    expect(client.snapshot().notes[0]).toMatchObject({ id: noteId, task: taskId });
+
+    const duplicate = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'note.convert',
+      entityId: noteId,
+      payload: { projectId: 'project-1' },
+    });
+    expect(duplicate.ok).toBe(true);
+    expect(client.snapshot().tasks).toHaveLength(2);
+
+    await client.execute({ ...commandContext('workspace-1'), type: 'task.delete', entityId: taskId, payload: {} });
+    expect(client.snapshot().notes[0]?.task).toBeNull();
+  });
+
+  it('escapes note content and rejects conversion without a project or content', async () => {
+    const client = new MemoryWorkspaceClient(snapshotFixture());
+    const empty = await client.execute({ ...commandContext('workspace-1'), type: 'note.create', payload: {} });
+    if (!empty.ok) throw new Error('Expected note creation to succeed');
+    const result = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'note.convert',
+      entityId: empty.affected.ids[0]!,
+      payload: { projectId: 'project-1' },
+    });
+    expect(result.ok).toBe(false);
+    expect(client.snapshot().tasks).toHaveLength(1);
+  });
+
+  it('deletes a note after converting it when requested', async () => {
+    const client = new MemoryWorkspaceClient(snapshotFixture());
+    const created = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'note.create',
+      payload: { body: 'Temporary thought' },
+    });
+    if (!created.ok) throw new Error('Expected note creation to succeed');
+    const noteId = created.affected.ids[0]!;
+
+    const converted = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'note.convert',
+      entityId: noteId,
+      payload: { projectId: 'project-1', deleteAfter: true },
+    });
+
+    expect(converted.ok).toBe(true);
+    expect(client.snapshot().notes).toHaveLength(0);
+    expect(client.snapshot().tasks).toHaveLength(2);
+    expect(client.snapshot().tasks[1]).toMatchObject({ title: 'Temporary thought' });
+  });
+
+  it('restores a deleted note from a snapshot for undo', async () => {
+    const client = new MemoryWorkspaceClient(snapshotFixture());
+    const created = await client.execute({
+      ...commandContext('workspace-1'),
+      type: 'note.create',
+      payload: { body: 'Undo this deletion' },
+    });
+    if (!created.ok) throw new Error('Expected note creation to succeed');
+    const noteId = created.affected.ids[0]!;
+    const beforeDelete = client.snapshot();
+
+    await client.execute({ ...commandContext('workspace-1'), type: 'note.delete', entityId: noteId, payload: {} });
+    expect(client.snapshot().notes).toHaveLength(0);
+
+    await client.replaceSnapshot(beforeDelete);
+    expect(client.snapshot().notes[0]).toMatchObject({ id: noteId, body: 'Undo this deletion' });
+  });
+
   it('creates, patches, archives, and deletes a task through commands', async () => {
     const client = new MemoryWorkspaceClient(snapshotFixture());
 

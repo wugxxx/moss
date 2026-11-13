@@ -62,7 +62,7 @@ export interface SyncPullRequest {
   after: number;
 }
 
-export type SyncEntityKind = 'workspace' | 'member' | 'project' | 'task' | 'comment' | 'file' | 'savedView';
+export type SyncEntityKind = 'workspace' | 'member' | 'project' | 'task' | 'comment' | 'file' | 'savedView' | 'note';
 
 export interface SyncWorkspaceValue {
   id?: string;

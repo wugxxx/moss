@@ -139,6 +139,15 @@ export interface SavedView {
   filters: Array<{ f: string; op: string; v: string[] }>;
 }
 
+export interface Note {
+  id: EntityId;
+  body: string;
+  task: EntityId | null;
+  created: number;
+  updated: number;
+  revision: number;
+}
+
 export interface CalendarEvent {
   id: EntityId;
   title: string;
@@ -168,6 +177,7 @@ export interface WorkspaceSnapshot {
   events: CalendarEvent[];
   projOrder: EntityId[];
   savedViews: SavedView[];
+  notes: Note[];
   recentSearches: string[];
   sessions: Array<Record<string, unknown>>;
   invoices: Array<Record<string, unknown>>;

@@ -1,4 +1,4 @@
-import type { Activity, Comment, FileRecord, Member, Project, SavedView, Task, WorkspaceSnapshot } from '@moss/contracts';
+import type { Activity, Comment, FileRecord, Member, Note, Project, SavedView, Task, WorkspaceSnapshot } from '@moss/contracts';
 import { normalizeLabelDefinitions, normalizeProjectLast } from '@moss/contracts';
 
 export interface SnapshotRow {
@@ -62,6 +62,14 @@ export function normalizeSnapshot(snapshot: WorkspaceSnapshot): WorkspaceSnapsho
         return values.length ? [{ ...filter, v: values }] : [];
       }),
     })),
+    notes: (copy.notes ?? []).map(note => ({
+      id: note.id,
+      body: note.body ?? '',
+      task: note.task ?? null,
+      created: note.created,
+      updated: note.updated,
+      revision: note.revision ?? 0,
+    })),
     recentSearches: copy.recentSearches ?? [],
     sessions: copy.sessions ?? [],
     invoices: copy.invoices ?? [],
@@ -76,5 +84,6 @@ export type RowByEntity = {
   comment: Comment;
   file: FileRecord;
   savedView: SavedView;
+  note: Note;
   activity: Activity;
 };

@@ -47,7 +47,12 @@ class MemoryRepository implements WorkspaceRepository {
 }
 
 function revisionOf(snapshot: WorkspaceSnapshot): number {
-  return Math.max(0, ...snapshot.tasks.map(task => task.revision), ...snapshot.projects.map(project => project.revision));
+  return Math.max(
+    0,
+    ...snapshot.tasks.map(task => task.revision),
+    ...snapshot.projects.map(project => project.revision),
+    ...snapshot.notes.map(note => note.revision),
+  );
 }
 
 export class MemoryWorkspaceClient implements WorkspaceClient {

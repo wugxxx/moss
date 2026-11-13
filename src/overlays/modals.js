@@ -6,6 +6,7 @@ import { D, S, pColor, proj, task } from '../core/store.js';
 import { FT, filePrev, lbl, prPill, stPill } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
 import { t as tr } from '../i18n/index.js';
+import { noteConversionModal } from '../actions/notes.js';
 
 export function openModal(m) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
@@ -38,6 +39,8 @@ export function modalHtml(m) {
       return wrap('sm', labelModal(m, H));
     case 'event':
       return wrap('', eventModal(m, H));
+    case 'noteConvert':
+      return wrap('sm', noteConversionModal(m, H));
     case 'confirm':
       return wrap('sm', confirmModal(m, H));
     case 'prompt':

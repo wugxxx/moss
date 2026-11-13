@@ -45,7 +45,9 @@ import './features/subtasks.js';
 import './features/archive.js';
 import './actions/subtasks.js';
 import './actions/archive.js';
+import { flushPendingNote, initNotes } from './actions/notes.js';
 import { D, S, initWorkspaceClient } from './core/store.js';
+import { ago } from './core/utils.js';
 import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { toast } from './ui/toast.js';
@@ -54,9 +56,23 @@ import { setLocale, t } from './i18n/index.js';
 
 document.documentElement.dataset.platform = window.mossDesktop?.platform ?? 'web';
 
+function handleHashNavigation() {
+  const taskMatch = (location.hash || '').match(/^#task\/([^/]+)$/);
+  if (taskMatch) {
+    A.openTask({ dataset: { id: decodeURIComponent(taskMatch[1]) } });
+  } else {
+    return;
+  }
+  history.replaceState(null, '', location.pathname + location.search + (S.ui.noteWindow ? `#note/${S.ui.noteWindow}` : ''));
+}
+
 async function boot() {
   try {
     await initWorkspaceClient();
+    const noteMatch = (location.hash || '').match(/^#note\/([^/]+)$/);
+    const taskMatch = (location.hash || '').match(/^#task\/([^/]+)$/);
+    if (noteMatch) S.ui.noteWindow = decodeURIComponent(noteMatch[1]);
+    await initNotes();
     workspace.onSyncStatus(sync => {
       const previous = S.ui.sync;
       S.ui.sync = sync;
@@ -66,9 +82,22 @@ async function boot() {
       }
       if (previous?.state === 'syncing' && sync.state === 'synced' && S.ui.route !== 'settings') render();
     });
-    workspace.onChangePending(() => {
+    workspace.onChangePending(async () => {
+      await flushPendingNote();
       S.data = workspace.snapshot();
-      if (S.ui.route !== 'settings') render();
+      if (S.ui.route === 'settings') return;
+      const editor = document.activeElement?.closest?.('[data-note-body]');
+      if (!editor) {
+        render();
+        return;
+      }
+      const note = D().notes.find(item => item.id === editor.dataset.id);
+      if (!note) {
+        render();
+        return;
+      }
+      const card = editor.closest('.note-card');
+      if (card) card.querySelector('.note-meta span:first-child').textContent = ago(note.updated);
     });
     setLocale(S.prefs.language);
     if (!document.getElementById('sr-live')) {
@@ -81,6 +110,8 @@ async function boot() {
     const h = (location.hash || '').slice(1);
     S.ui.route = h && ROUTE_NAMES[h] ? h : S.prefs.home || 'home';
     render();
+    history.replaceState(null, '', location.pathname + location.search + (S.ui.noteWindow ? `#note/${S.ui.noteWindow}` : ''));
+    if (taskMatch) A.openTask({ dataset: { id: decodeURIComponent(taskMatch[1]) } });
   } catch (error) {
     console.error('Failed to initialize the workspace', error);
     toast(error instanceof Error ? error.message : t('errors.failedBody'), { kind: 'err', ms: 10000 });
@@ -88,6 +119,7 @@ async function boot() {
 }
 
 void boot();
+window.addEventListener('hashchange', handleHashNavigation);
 
 // Local diagnostics for development and the packaged desktop renderer.
 if (import.meta.env.DEV || window.mossDesktop) {

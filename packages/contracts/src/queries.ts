@@ -22,5 +22,5 @@ export type WorkspaceQueryResult = WorkspaceSnapshot | Task[] | TaskDetail | Pro
 
 export interface ChangeSet {
   revision: number;
-  affected: { type: 'task' | 'project' | 'workspace'; ids: EntityId[] };
+  affected: { type: 'task' | 'project' | 'note' | 'workspace'; ids: EntityId[] };
 }

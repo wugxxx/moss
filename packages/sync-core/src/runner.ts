@@ -145,7 +145,7 @@ function ensureResponse(response: SyncPushResponse, expected: SyncPushItem[]): v
   }
 }
 
-const ENTITY_KINDS = new Set(['workspace', 'member', 'project', 'task', 'comment', 'file', 'savedView']);
+const ENTITY_KINDS = new Set(['workspace', 'member', 'project', 'task', 'comment', 'file', 'savedView', 'note']);
 
 function validateChange(change: unknown, after: number, cursor: number): asserts change is SyncChange {
   if (

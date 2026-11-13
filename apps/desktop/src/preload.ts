@@ -1,7 +1,15 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { CommandResult, WorkspaceCommand, WorkspaceQuery, WorkspaceQueryResult, WorkspaceSnapshot } from '@moss/contracts';
-import type { DesktopAppBridge, SyncStatus } from '@moss/client';
+import type { DesktopAppBridge, DesktopNoteAction, SyncStatus } from '@moss/client';
 import { IPC_CHANNELS } from './channels.js';
+
+const actionListeners = new Set<(action: DesktopNoteAction, id: string) => void>();
+let pendingAction: { action: DesktopNoteAction; id: string } | null = null;
+
+ipcRenderer.on(IPC_CHANNELS.noteOpenAction, (_event, action: DesktopNoteAction, id: string) => {
+  if (!actionListeners.size) pendingAction = { action, id };
+  else for (const listener of actionListeners) listener(action, id);
+});
 
 export interface DesktopWorkspaceBridge {
   snapshot(): Promise<WorkspaceSnapshot>;
@@ -14,6 +22,31 @@ export interface DesktopWorkspaceBridge {
   getSyncStatus(): Promise<SyncStatus>;
   onChanged(callback: (status: SyncStatus) => void): () => void;
 }
+
+const notes = {
+  create: () => ipcRenderer.invoke(IPC_CHANNELS.noteCreate) as Promise<string>,
+  setPinned: (id: string, pinned: boolean) => ipcRenderer.invoke(IPC_CHANNELS.notePin, id, pinned) as Promise<void>,
+  close: (id: string) => ipcRenderer.invoke(IPC_CHANNELS.noteClose, id) as Promise<void>,
+  getPinned: () => ipcRenderer.invoke(IPC_CHANNELS.notePinned) as Promise<string[]>,
+  getShortcut: () => ipcRenderer.invoke(IPC_CHANNELS.noteGetShortcut) as Promise<string>,
+  setShortcut: (shortcut: string) => ipcRenderer.invoke(IPC_CHANNELS.noteSetShortcut, shortcut) as Promise<boolean>,
+  showMain: (hash?: string) => ipcRenderer.invoke(IPC_CHANNELS.noteShowMain, hash) as Promise<void>,
+  requestAction: (action: DesktopNoteAction, id: string) => ipcRenderer.invoke(IPC_CHANNELS.noteRequestAction, action, id) as Promise<void>,
+  onActionRequested(callback: (action: DesktopNoteAction, id: string) => void) {
+    actionListeners.add(callback);
+    if (pendingAction) {
+      const pending = pendingAction;
+      pendingAction = null;
+      callback(pending.action, pending.id);
+    }
+    return () => actionListeners.delete(callback);
+  },
+  onChanged(callback: (ids: string[]) => void) {
+    const listener = (_event: Electron.IpcRendererEvent, ids: string[]) => callback(ids);
+    ipcRenderer.on(IPC_CHANNELS.notesChanged, listener);
+    return () => ipcRenderer.off(IPC_CHANNELS.notesChanged, listener);
+  },
+};
 
 const bridge: DesktopAppBridge = {
   platform: process.platform,
@@ -39,6 +72,7 @@ const bridge: DesktopAppBridge = {
     remove: storageKey => ipcRenderer.invoke(IPC_CHANNELS.attachmentRemove, storageKey),
     cleanup: storageKeys => ipcRenderer.invoke(IPC_CHANNELS.attachmentCleanup, [...storageKeys]),
   },
+  notes,
 };
 
 contextBridge.exposeInMainWorld('mossDesktop', bridge);

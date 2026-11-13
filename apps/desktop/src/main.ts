@@ -9,9 +9,12 @@ import { createSqliteWorkspace, openDatabase, type SqliteWorkspace } from '@moss
 import { seed } from '../../../src/data/seed.js';
 import { AttachmentStore } from './attachment-store.js';
 import { IPC_CHANNELS } from './channels.js';
+import { DesktopNotes } from './notes.js';
+import { commandContext } from '@moss/client';
 
 let workspace: SqliteWorkspace | undefined;
 let attachmentStore: AttachmentStore | undefined;
+let desktopNotes: DesktopNotes | undefined;
 const WINDOW_VERTICAL_OFFSET = 48;
 
 app.setName('Moss');
@@ -39,6 +42,7 @@ function broadcastChange(): void {
 
 function validateSender(event: Electron.IpcMainInvokeEvent): void {
   if (!event.senderFrame || !isTrustedRenderer(event.senderFrame.url)) throw new Error('Untrusted IPC sender');
+  if (!workspace) throw new Error('Workspace is unavailable');
 }
 
 function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
@@ -155,6 +159,18 @@ async function createWindow(): Promise<void> {
     window.setPosition(bounds.x, Math.min(bounds.y + WINDOW_VERTICAL_OFFSET, maxY), false);
     window.show();
   });
+  secureRenderer(window);
+
+  await loadRenderer(window);
+}
+
+async function loadRenderer(window: BrowserWindow, hash = ''): Promise<void> {
+  secureRenderer(window);
+  if (process.env.VITE_DEV_SERVER_URL) await window.loadURL(`${process.env.VITE_DEV_SERVER_URL}${hash}`);
+  else await window.loadFile(join(app.getAppPath(), 'dist/index.html'), hash ? { hash } : undefined);
+}
+
+function secureRenderer(window: BrowserWindow): void {
   window.webContents.on('will-attach-webview', event => event.preventDefault());
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) void shell.openExternal(url);
@@ -163,9 +179,49 @@ async function createWindow(): Promise<void> {
   window.webContents.on('will-navigate', (event, url) => {
     if (!isTrustedRenderer(url)) event.preventDefault();
   });
+}
 
-  if (process.env.VITE_DEV_SERVER_URL) await window.loadURL(process.env.VITE_DEV_SERVER_URL);
-  else await window.loadFile(join(app.getAppPath(), 'dist/index.html'));
+function broadcastPinnedNotes(): void {
+  const pinned = desktopNotes?.getPinned() ?? [];
+  for (const window of BrowserWindow.getAllWindows()) window.webContents.send(IPC_CHANNELS.notesChanged, pinned);
+}
+
+function registerNoteIpc(notes: DesktopNotes): void {
+  ipcMain.handle(IPC_CHANNELS.noteCreate, event => {
+    validateSender(event);
+    return notes.create();
+  });
+  ipcMain.handle(IPC_CHANNELS.notePin, async (event, id: string, pinned: boolean) => {
+    validateSender(event);
+    if (!workspace?.client.snapshot().notes.some(note => note.id === id)) throw new Error('Note not found');
+    await notes.setPinned(id, pinned);
+  });
+  ipcMain.handle(IPC_CHANNELS.noteClose, (event, id: string) => {
+    validateSender(event);
+    notes.close(id);
+  });
+  ipcMain.handle(IPC_CHANNELS.notePinned, event => {
+    validateSender(event);
+    return notes.getPinned();
+  });
+  ipcMain.handle(IPC_CHANNELS.noteGetShortcut, event => {
+    validateSender(event);
+    return notes.getShortcut();
+  });
+  ipcMain.handle(IPC_CHANNELS.noteSetShortcut, (event, shortcut: string) => {
+    validateSender(event);
+    return notes.setShortcut(shortcut);
+  });
+  ipcMain.handle(IPC_CHANNELS.noteShowMain, async (event, hash?: string) => {
+    validateSender(event);
+    await desktopNotes?.showMain(hash);
+  });
+  ipcMain.handle(IPC_CHANNELS.noteRequestAction, async (event, action: 'convert' | 'delete', id: string) => {
+    validateSender(event);
+    if (action !== 'convert' && action !== 'delete') throw new Error('Invalid note action');
+    if (!workspace?.client.snapshot().notes.some(note => note.id === id)) throw new Error('Note not found');
+    await notes.requestAction(action, id);
+  });
 }
 
 if (!app.requestSingleInstanceLock()) {
@@ -213,7 +269,54 @@ if (!app.requestSingleInstanceLock()) {
       registerWorkspaceIpc(workspace);
       registerAttachmentIpc(attachmentStore);
 
+      desktopNotes = new DesktopNotes({
+        userData: app.getPath('userData'),
+        preload: join(app.getAppPath(), 'dist-electron/preload.mjs'),
+        load: (window, id) => loadRenderer(window, `#note/${id}`),
+        createNote: async () => {
+          const result = await workspace!.client.execute({
+            ...commandContext('local', workspace!.client.snapshot().me),
+            type: 'note.create',
+            payload: {},
+          });
+          if (!result.ok) throw new Error(result.error.message);
+          broadcastChange();
+          return result.affected.ids[0]!;
+        },
+        showMain: async hash => {
+          let window = BrowserWindow.getAllWindows().find(item => !desktopNotes?.isNoteWindow(item));
+          if (!window) {
+            await createWindow();
+            window = BrowserWindow.getAllWindows().find(item => !desktopNotes?.isNoteWindow(item));
+          }
+          if (!window) return;
+          if (hash) await loadRenderer(window, hash);
+          if (window.isMinimized()) window.restore();
+          window.show();
+          window.focus();
+        },
+        requestAction: async (action, id) => {
+          let window = BrowserWindow.getAllWindows().find(item => !desktopNotes?.isNoteWindow(item));
+          if (!window) {
+            await createWindow();
+            window = BrowserWindow.getAllWindows().find(item => !desktopNotes?.isNoteWindow(item));
+          }
+          if (!window) return;
+          const send = () => {
+            if (!window?.isDestroyed()) window.webContents.send(IPC_CHANNELS.noteOpenAction, action, id);
+          };
+          if (window.webContents.isLoading()) window.webContents.once('did-finish-load', send);
+          else send();
+          if (window.isMinimized()) window.restore();
+          window.show();
+          window.focus();
+        },
+        onChange: broadcastPinnedNotes,
+      });
+      registerNoteIpc(desktopNotes);
+
       await createWindow();
+      await desktopNotes.initialize();
       if (syncBaseUrl) {
         void workspace.client
           .sync()
@@ -235,6 +338,11 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  desktopNotes?.dispose();
   workspace?.syncRunner.dispose();
+});
+
+app.on('will-quit', () => {
   workspace?.db.close();
+  workspace = undefined;
 });
