@@ -175,6 +175,12 @@
   font-size: var(--fs-sm);
   color: var(--text-3);
 }
+.home-col-list.cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  align-content: start;
+}
 /* ---------- HOME: work overview ---------- */
 .home-rhythm {
   margin-bottom: 24px;

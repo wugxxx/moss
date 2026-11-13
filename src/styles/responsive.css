@@ -151,6 +151,9 @@
   .home-cols {
     grid-template-columns: minmax(0, 1fr);
   }
+  .home-col-list.cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .home-cmd .ph h1 {
     font-size: 32px;
   }

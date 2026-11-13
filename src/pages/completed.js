@@ -25,7 +25,7 @@ export function pageCompleted() {
     <div class="ph home-ph"><div><p class="home-greet">${t('completed.lead')}</p></div></div>
     <section class="home-col done">
       <header class="home-col-h"><h3>${t('completed.title', { count: done.length })}</h3></header>
-      <div class="home-col-list">${done.length ? done.map(doneRow).join('') : `<p class="home-col-empty">${t('completed.emptyText')}</p>`}</div>
+      <div class="home-col-list cols-2">${done.length ? done.map(doneRow).join('') : `<p class="home-col-empty">${t('completed.emptyText')}</p>`}</div>
     </section>
   </div>`;
 }
