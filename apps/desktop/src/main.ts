@@ -9,10 +9,13 @@ import { createSqliteWorkspace, openDatabase, type SqliteWorkspace } from '@moss
 import { seed } from '../../../src/data/seed.js';
 import { AttachmentStore } from './attachment-store.js';
 import { IPC_CHANNELS } from './channels.js';
+import { readWindowState, resolveWindowState, writeWindowState } from './window-state.js';
 
 let workspace: SqliteWorkspace | undefined;
 let attachmentStore: AttachmentStore | undefined;
+let flushWindowState: (() => void) | undefined;
 const WINDOW_VERTICAL_OFFSET = 48;
+const DEFAULT_WINDOW = { width: 1440, height: 920, minWidth: 780, minHeight: 600 };
 
 app.setName('Moss');
 
@@ -49,7 +52,6 @@ function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
   ipcMain.handle(IPC_CHANNELS.replaceSnapshot, async (event, snapshot: WorkspaceSnapshot) => {
     validateSender(event);
     activeWorkspace.repository.replaceSnapshot(snapshot);
-    broadcastChange();
     return activeWorkspace.client.snapshot();
   });
   ipcMain.handle(IPC_CHANNELS.query, async (event, query: WorkspaceQuery) => {
@@ -61,7 +63,6 @@ function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
     const result = await activeWorkspace.client.execute(command);
     if (result.ok) {
       activeWorkspace.syncRunner.schedule(250);
-      broadcastChange();
     }
     return result;
   });
@@ -70,20 +71,17 @@ function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
     const results = await activeWorkspace.client.executeBatch(commands);
     if (results.some(result => result.ok)) {
       activeWorkspace.syncRunner.schedule(250);
-      broadcastChange();
     }
     return results;
   });
   ipcMain.handle(IPC_CHANNELS.sync, async event => {
     validateSender(event);
     const status = await activeWorkspace.client.sync();
-    broadcastChange();
     return status;
   });
   ipcMain.handle(IPC_CHANNELS.retryFailed, async event => {
     validateSender(event);
     const status = await activeWorkspace.syncRunner.retryFailed();
-    broadcastChange();
     return status;
   });
   ipcMain.handle(IPC_CHANNELS.syncStatus, async event => {
@@ -129,11 +127,27 @@ function registerAttachmentIpc(store: AttachmentStore): void {
 }
 
 async function createWindow(): Promise<void> {
+  const windowStatePath = join(app.getPath('userData'), 'window-state.json');
+  const savedWindowState = readWindowState(windowStatePath);
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const windowState = resolveWindowState(
+    savedWindowState,
+    [
+      primaryDisplay.workArea,
+      ...screen
+        .getAllDisplays()
+        .filter(display => display.id !== primaryDisplay.id)
+        .map(display => display.workArea),
+    ],
+    DEFAULT_WINDOW,
+  );
   const window = new BrowserWindow({
-    width: 1440,
-    height: 920,
-    minWidth: 780,
-    minHeight: 600,
+    x: windowState.x,
+    y: windowState.y,
+    width: windowState.width,
+    height: windowState.height,
+    minWidth: DEFAULT_WINDOW.minWidth,
+    minHeight: DEFAULT_WINDOW.minHeight,
     show: false,
     title: 'Moss',
     backgroundColor: '#f6f4ef',
@@ -147,12 +161,46 @@ async function createWindow(): Promise<void> {
     },
   });
 
+  const saveWindowState = () => {
+    if (window.isDestroyed()) return;
+    const bounds = window.isMaximized() || window.isFullScreen() ? window.getNormalBounds() : window.getBounds();
+    try {
+      writeWindowState(windowStatePath, { ...bounds, maximized: window.isMaximized() });
+    } catch (error) {
+      console.warn('Failed to save window state', error);
+    }
+  };
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  const scheduleWindowStateSave = () => {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveTimer = undefined;
+      saveWindowState();
+    }, 250);
+  };
+  flushWindowState = () => {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = undefined;
+    saveWindowState();
+  };
+  window.on('resize', scheduleWindowStateSave);
+  window.on('move', scheduleWindowStateSave);
+  window.on('maximize', scheduleWindowStateSave);
+  window.on('unmaximize', scheduleWindowStateSave);
+  window.on('close', () => {
+    flushWindowState?.();
+    flushWindowState = undefined;
+  });
+
   window.once('ready-to-show', () => {
-    window.center();
-    const bounds = window.getBounds();
-    const { workArea } = screen.getDisplayMatching(bounds);
-    const maxY = Math.max(workArea.y, workArea.y + workArea.height - bounds.height);
-    window.setPosition(bounds.x, Math.min(bounds.y + WINDOW_VERTICAL_OFFSET, maxY), false);
+    if (savedWindowState === null) {
+      window.center();
+      const bounds = window.getBounds();
+      const { workArea } = screen.getDisplayMatching(bounds);
+      const maxY = Math.max(workArea.y, workArea.y + workArea.height - bounds.height);
+      window.setPosition(bounds.x, Math.min(bounds.y + WINDOW_VERTICAL_OFFSET, maxY), false);
+    }
+    if (windowState.maximized) window.maximize();
     window.show();
   });
   window.webContents.on('will-attach-webview', event => event.preventDefault());
@@ -235,6 +283,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  flushWindowState?.();
   workspace?.syncRunner.dispose();
   workspace?.db.close();
 });

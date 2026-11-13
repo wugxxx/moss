@@ -35,8 +35,13 @@ export class DesktopWorkspaceClient implements WorkspaceClient {
     this.unsubscribe = this.bridge.onChanged(status => {
       this.syncStatus = status;
       this.notifyStatus(status);
-      this.notifyChangePending();
-      void this.refresh();
+      if (status.state === 'syncing') {
+        this.notifyChangePending();
+        return;
+      }
+      void this.refreshSnapshot()
+        .catch(error => console.warn('Failed to refresh workspace snapshot', error))
+        .finally(() => this.notifyChangePending());
     });
     return this.snapshotCache;
   }
@@ -65,12 +70,14 @@ export class DesktopWorkspaceClient implements WorkspaceClient {
   async sync(): Promise<SyncStatus> {
     this.syncStatus = await this.bridge.sync();
     this.notifyStatus(this.syncStatus);
+    await this.refreshSnapshot();
     return this.syncStatus;
   }
 
   async retryFailed(): Promise<SyncStatus> {
     this.syncStatus = await this.bridge.retryFailed();
     this.notifyStatus(this.syncStatus);
+    await this.refreshSnapshot();
     return this.syncStatus;
   }
 
@@ -100,9 +107,17 @@ export class DesktopWorkspaceClient implements WorkspaceClient {
 
   private async refresh(affected?: ChangeSet['affected'], revision = 0): Promise<void> {
     const [snapshot, syncStatus] = await Promise.all([this.bridge.snapshot(), this.bridge.getSyncStatus()]);
-    this.snapshotCache = snapshot;
     this.syncStatus = syncStatus;
     this.notifyStatus(syncStatus);
+    this.commitSnapshot(snapshot, affected, revision);
+  }
+
+  private async refreshSnapshot(affected?: ChangeSet['affected'], revision = 0): Promise<void> {
+    this.commitSnapshot(await this.bridge.snapshot(), affected, revision);
+  }
+
+  private commitSnapshot(snapshot: WorkspaceSnapshot, affected?: ChangeSet['affected'], revision = 0): void {
+    this.snapshotCache = snapshot;
     if (affected) {
       const change: ChangeSet = { affected, revision };
       this.listeners.forEach(listener => listener(change));

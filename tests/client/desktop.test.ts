@@ -20,8 +20,12 @@ function bridge(overrides: Partial<DesktopWorkspaceBridge> = {}) {
   let snapshot = snapshotFixture();
   let status: SyncStatus = { state: 'local', pending: 0, configured: true };
   let changed: ((status: SyncStatus) => void) | undefined;
+  let snapshotCalls = 0;
   const instance: DesktopWorkspaceBridge = {
-    snapshot: async () => structuredClone(snapshot),
+    snapshot: async () => {
+      snapshotCalls += 1;
+      return structuredClone(snapshot);
+    },
     replaceSnapshot: async value => {
       snapshot = structuredClone(value);
       return structuredClone(snapshot);
@@ -55,6 +59,9 @@ function bridge(overrides: Partial<DesktopWorkspaceBridge> = {}) {
     },
     notifyChange(value: SyncStatus) {
       changed?.(value);
+    },
+    snapshotCalls() {
+      return snapshotCalls;
     },
   };
 }
@@ -96,16 +103,50 @@ describe('DesktopWorkspaceClient', () => {
     const fake = bridge();
     const client = new DesktopWorkspaceClient(fake.bridge);
     await client.initialize();
+    const changed = snapshotFixture();
+    changed.tasks[0]!.title = 'Changed during sync';
+    fake.setSnapshot(changed);
+    fake.setStatus({ state: 'synced', pending: 0, configured: true });
     let pending = 0;
+    let snapshotTitle: string | undefined;
     client.onChangePending(() => {
       pending += 1;
+      snapshotTitle = client.snapshot().tasks[0]?.title;
     });
+
+    fake.notifyChange({ state: 'synced', pending: 0, configured: true });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(pending).toBe(1);
+    expect(snapshotTitle).toBe('Changed during sync');
+    client.dispose();
+  });
+
+  it('does not fetch a full snapshot for an in-progress sync status', async () => {
+    const fake = bridge();
+    const client = new DesktopWorkspaceClient(fake.bridge);
+    await client.initialize();
+    const callsBefore = fake.snapshotCalls();
 
     fake.notifyChange({ state: 'syncing', pending: 0, configured: true });
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    expect(pending).toBe(1);
-    expect(client.snapshot().tasks[0]?.title).toBe('Test task');
+    expect(fake.snapshotCalls()).toBe(callsBefore);
+    client.dispose();
+  });
+
+  it('refreshes the snapshot after a manual sync', async () => {
+    const fake = bridge();
+    const client = new DesktopWorkspaceClient(fake.bridge);
+    await client.initialize();
+    const changed = snapshotFixture();
+    changed.tasks[0]!.title = 'Pulled from sync';
+    fake.setSnapshot(changed);
+    fake.setStatus({ state: 'synced', pending: 0, configured: true });
+
+    await client.sync();
+
+    expect(client.snapshot().tasks[0]?.title).toBe('Pulled from sync');
     client.dispose();
   });
 });
