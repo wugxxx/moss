@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { app, BrowserWindow, ipcMain, Menu, nativeImage, screen, session, shell, Tray } from 'electron';
 import type { WorkspaceCommand, WorkspaceQuery, WorkspaceSnapshot } from '@moss/contracts';
 import type { CommandResult } from '@moss/contracts';
-import { HttpSyncTransport, type SaveAttachmentInput } from '@moss/client';
+import { commandContext, HttpSyncTransport, type SaveAttachmentInput } from '@moss/client';
 import { createSqliteWorkspace, openDatabase, type SqliteWorkspace } from '@moss/local-db';
 import { seed } from '../../../src/data/seed.js';
 import { AttachmentStore } from './attachment-store.js';
@@ -17,8 +17,15 @@ let flushWindowState: (() => void) | undefined;
 let mainWindow: BrowserWindow | undefined;
 let windowCreation: Promise<BrowserWindow> | undefined;
 let tray: Tray | undefined;
+let trayPopover: BrowserWindow | undefined;
+let trayPopoverCreation: Promise<BrowserWindow> | undefined;
+let trayPopoverHeight = 360;
+let trayDismissedAt = 0;
 let isQuitting = false;
 const WINDOW_VERTICAL_OFFSET = 48;
+const TRAY_POPOVER_WIDTH = 380;
+const TRAY_POPOVER_MIN_HEIGHT = 120;
+const TRAY_POPOVER_MAX_HEIGHT = 560;
 const DEFAULT_WINDOW = { width: 1440, height: 920, minWidth: 780, minHeight: 600 };
 const FALLBACK_TRAY_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
@@ -43,6 +50,7 @@ function broadcastChange(): void {
   for (const window of BrowserWindow.getAllWindows()) {
     window.webContents.send(IPC_CHANNELS.changed, status);
   }
+  notifyTrayPopover();
 }
 
 function validateSender(event: Electron.IpcMainInvokeEvent): void {
@@ -59,6 +67,120 @@ function buildTrayMenu(): Menu {
   ]);
 }
 
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function trayPopoverBounds(height: number): Electron.Rectangle {
+  const fallback = screen.getCursorScreenPoint();
+  const anchor = tray?.getBounds() ?? { x: fallback.x, y: fallback.y, width: 0, height: 0 };
+  const { workArea } = screen.getDisplayMatching(anchor);
+  const resolvedHeight = Math.round(clampNumber(height, TRAY_POPOVER_MIN_HEIGHT, Math.min(TRAY_POPOVER_MAX_HEIGHT, workArea.height - 24)));
+  const x = Math.round(anchor.x + anchor.width / 2 - TRAY_POPOVER_WIDTH / 2);
+  const y = Math.round(anchor.y + anchor.height + 6);
+  return {
+    x: Math.round(clampNumber(x, workArea.x + 8, workArea.x + workArea.width - TRAY_POPOVER_WIDTH - 8)),
+    y: Math.round(clampNumber(y, workArea.y + 8, workArea.y + workArea.height - resolvedHeight - 8)),
+    width: TRAY_POPOVER_WIDTH,
+    height: resolvedHeight,
+  };
+}
+
+function hideTrayPopover(): void {
+  if (trayPopover?.isVisible()) trayPopover.hide();
+  trayDismissedAt = Date.now();
+}
+
+function notifyTrayPopover(): void {
+  if (!trayPopover || trayPopover.isDestroyed() || !trayPopover.isVisible()) return;
+  trayPopover.webContents.send(IPC_CHANNELS.trayRefresh);
+}
+
+async function ensureTrayPopover(): Promise<BrowserWindow> {
+  if (trayPopover && !trayPopover.isDestroyed()) return trayPopover;
+  if (!trayPopoverCreation) {
+    trayPopoverCreation = (async () => {
+      const popover = new BrowserWindow({
+        width: TRAY_POPOVER_WIDTH,
+        height: trayPopoverHeight,
+        show: false,
+        frame: false,
+        transparent: true,
+        backgroundColor: '#00000000',
+        resizable: false,
+        movable: false,
+        minimizable: false,
+        maximizable: false,
+        fullscreenable: false,
+        skipTaskbar: true,
+        alwaysOnTop: true,
+        hasShadow: true,
+        roundedCorners: true,
+        type: 'panel',
+        title: 'Moss',
+        webPreferences: {
+          preload: join(app.getAppPath(), 'dist-electron/preload.mjs'),
+          contextIsolation: true,
+          nodeIntegration: false,
+          sandbox: true,
+        },
+      });
+      trayPopover = popover;
+      popover.setAlwaysOnTop(true, 'pop-up-menu');
+      popover.on('blur', () => {
+        setTimeout(() => {
+          if (!popover.isDestroyed() && popover.isVisible() && !popover.isFocused()) {
+            popover.hide();
+            trayDismissedAt = Date.now();
+          }
+        }, 60);
+      });
+      popover.on('closed', () => {
+        if (trayPopover === popover) trayPopover = undefined;
+      });
+      popover.webContents.setWindowOpenHandler(({ url }) => {
+        if (url.startsWith('https://')) void shell.openExternal(url);
+        return { action: 'deny' };
+      });
+      popover.webContents.on('will-navigate', (event, url) => {
+        if (!isTrustedRenderer(url)) event.preventDefault();
+      });
+      try {
+        if (process.env.VITE_DEV_SERVER_URL) {
+          await popover.loadURL(new URL('tray.html', process.env.VITE_DEV_SERVER_URL).toString());
+        } else {
+          await popover.loadFile(join(app.getAppPath(), 'dist/tray.html'));
+        }
+      } catch (error) {
+        popover.destroy();
+        throw error;
+      }
+      return popover;
+    })().finally(() => {
+      trayPopoverCreation = undefined;
+    });
+  }
+  return trayPopoverCreation;
+}
+
+async function showTrayPopover(): Promise<void> {
+  const popover = await ensureTrayPopover();
+  if (popover.isDestroyed()) return;
+  popover.setBounds(trayPopoverBounds(trayPopoverHeight), false);
+  popover.show();
+  popover.focus();
+  popover.webContents.send(IPC_CHANNELS.trayRefresh);
+}
+
+function toggleTrayPopover(): void {
+  if (trayPopover?.isVisible()) {
+    hideTrayPopover();
+    return;
+  }
+  if (Date.now() - trayDismissedAt < 250) return;
+  void showTrayPopover().catch(error => console.warn('Failed to show the tray popover', error));
+}
+
 function createTray(): void {
   if (process.platform !== 'darwin' || tray) return;
   const iconPath = join(app.getAppPath(), app.isPackaged ? 'dist/trayTemplate.png' : 'public/trayTemplate.png');
@@ -70,9 +192,12 @@ function createTray(): void {
   tray = new Tray(icon);
   tray.setToolTip('Moss');
   if (!hasIcon) tray.setTitle('Moss');
-  const openMenu = () => tray?.popUpContextMenu(buildTrayMenu());
-  tray.on('click', openMenu);
-  tray.on('right-click', openMenu);
+  tray.on('click', toggleTrayPopover);
+  tray.on('right-click', () => {
+    hideTrayPopover();
+    tray?.popUpContextMenu(buildTrayMenu());
+  });
+  void ensureTrayPopover().catch(error => console.warn('Failed to prepare the tray popover', error));
 }
 
 async function ensureWindow(): Promise<BrowserWindow> {
@@ -102,6 +227,7 @@ function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
   ipcMain.handle(IPC_CHANNELS.replaceSnapshot, async (event, snapshot: WorkspaceSnapshot) => {
     validateSender(event);
     activeWorkspace.repository.replaceSnapshot(snapshot);
+    notifyTrayPopover();
     return activeWorkspace.client.snapshot();
   });
   ipcMain.handle(IPC_CHANNELS.query, async (event, query: WorkspaceQuery) => {
@@ -113,6 +239,7 @@ function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
     const result = await activeWorkspace.client.execute(command);
     if (result.ok) {
       activeWorkspace.syncRunner.schedule(250);
+      notifyTrayPopover();
     }
     return result;
   });
@@ -121,6 +248,7 @@ function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
     const results = await activeWorkspace.client.executeBatch(commands);
     if (results.some(result => result.ok)) {
       activeWorkspace.syncRunner.schedule(250);
+      notifyTrayPopover();
     }
     return results;
   });
@@ -137,6 +265,71 @@ function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
   ipcMain.handle(IPC_CHANNELS.syncStatus, async event => {
     validateSender(event);
     return activeWorkspace.client.getSyncStatus();
+  });
+}
+
+function registerTrayIpc(activeWorkspace: SqliteWorkspace): void {
+  ipcMain.handle(IPC_CHANNELS.trayOpenTask, async (event, taskId: string) => {
+    validateSender(event);
+    if (typeof taskId !== 'string' || !activeWorkspace.client.snapshot().tasks.some(task => task.id === taskId)) return;
+    hideTrayPopover();
+    await showMainWindow();
+    const window = mainWindow;
+    if (!window || window.isDestroyed()) return;
+    if (window.webContents.isLoadingMainFrame()) window.webContents.once('did-finish-load', () => window.webContents.send(IPC_CHANNELS.appOpenTask, taskId));
+    else window.webContents.send(IPC_CHANNELS.appOpenTask, taskId);
+  });
+  ipcMain.handle(IPC_CHANNELS.trayOpenApp, async event => {
+    validateSender(event);
+    hideTrayPopover();
+    await showMainWindow();
+  });
+  ipcMain.handle(IPC_CHANNELS.trayCompleteTask, async (event, taskId: string) => {
+    validateSender(event);
+    if (typeof taskId !== 'string') return false;
+    const snapshot = activeWorkspace.client.snapshot();
+    const task = snapshot.tasks.find(item => item.id === taskId);
+    if (!task || task.status === 'done') return false;
+    const result = await activeWorkspace.client.execute({
+      ...commandContext('local', snapshot.me),
+      type: 'task.patch',
+      entityId: taskId,
+      payload: { patch: { status: 'done' } },
+    });
+    if (result.ok) {
+      activeWorkspace.syncRunner.schedule(250);
+      broadcastChange();
+    }
+    return result.ok;
+  });
+  ipcMain.handle(IPC_CHANNELS.trayUndoCompleteTask, async (event, taskId: string) => {
+    validateSender(event);
+    if (typeof taskId !== 'string') return false;
+    const snapshot = activeWorkspace.client.snapshot();
+    const task = snapshot.tasks.find(item => item.id === taskId);
+    if (!task || task.status !== 'done') return false;
+    const status = task.prevStatus && task.prevStatus !== 'done' ? task.prevStatus : 'todo';
+    const result = await activeWorkspace.client.execute({
+      ...commandContext('local', snapshot.me),
+      type: 'task.patch',
+      entityId: taskId,
+      payload: { patch: { status } },
+    });
+    if (result.ok) {
+      activeWorkspace.syncRunner.schedule(250);
+      broadcastChange();
+    }
+    return result.ok;
+  });
+  ipcMain.on(IPC_CHANNELS.trayResize, (event, height: unknown) => {
+    if (event.sender !== trayPopover?.webContents) return;
+    if (typeof height !== 'number' || !Number.isFinite(height)) return;
+    trayPopoverHeight = Math.round(clampNumber(height, TRAY_POPOVER_MIN_HEIGHT, TRAY_POPOVER_MAX_HEIGHT));
+    if (trayPopover && !trayPopover.isDestroyed()) trayPopover.setBounds(trayPopoverBounds(trayPopoverHeight), false);
+  });
+  ipcMain.on(IPC_CHANNELS.trayHide, event => {
+    if (event.sender !== trayPopover?.webContents) return;
+    hideTrayPopover();
   });
 }
 
@@ -315,6 +508,7 @@ if (!app.requestSingleInstanceLock()) {
       });
       attachmentStore = new AttachmentStore({ rootDirectory: join(app.getPath('userData'), 'attachments') });
       registerWorkspaceIpc(workspace);
+      registerTrayIpc(workspace);
       registerAttachmentIpc(attachmentStore);
 
       await createWindow();
@@ -341,6 +535,8 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   isQuitting = true;
+  trayPopover?.destroy();
+  trayPopover = undefined;
   tray?.destroy();
   tray = undefined;
   flushWindowState?.();

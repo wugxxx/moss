@@ -25,6 +25,22 @@ const bridge: DesktopAppBridge = {
   sync: () => ipcRenderer.invoke(IPC_CHANNELS.sync),
   retryFailed: () => ipcRenderer.invoke(IPC_CHANNELS.retryFailed),
   getSyncStatus: () => ipcRenderer.invoke(IPC_CHANNELS.syncStatus),
+  openTask: (taskId: string) => ipcRenderer.invoke(IPC_CHANNELS.trayOpenTask, taskId),
+  openApp: () => ipcRenderer.invoke(IPC_CHANNELS.trayOpenApp),
+  completeTask: (taskId: string) => ipcRenderer.invoke(IPC_CHANNELS.trayCompleteTask, taskId),
+  undoCompleteTask: (taskId: string) => ipcRenderer.invoke(IPC_CHANNELS.trayUndoCompleteTask, taskId),
+  resizeTray: (height: number) => ipcRenderer.send(IPC_CHANNELS.trayResize, height),
+  hideTray: () => ipcRenderer.send(IPC_CHANNELS.trayHide),
+  onOpenTask(callback: (taskId: string) => void) {
+    const listener = (_event: Electron.IpcRendererEvent, taskId: string) => callback(taskId);
+    ipcRenderer.on(IPC_CHANNELS.appOpenTask, listener);
+    return () => ipcRenderer.off(IPC_CHANNELS.appOpenTask, listener);
+  },
+  onTrayRefresh(callback: () => void) {
+    const listener = () => callback();
+    ipcRenderer.on(IPC_CHANNELS.trayRefresh, listener);
+    return () => ipcRenderer.off(IPC_CHANNELS.trayRefresh, listener);
+  },
   onChanged(callback) {
     const listener = (_event: Electron.IpcRendererEvent, status: SyncStatus) => callback(status);
     ipcRenderer.on(IPC_CHANNELS.changed, listener);

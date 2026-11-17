@@ -17,6 +17,14 @@ export interface DesktopWorkspaceBridge {
 export interface DesktopAppBridge extends DesktopWorkspaceBridge {
   platform: string;
   attachments: AttachmentStorage;
+  openTask(taskId: string): Promise<void>;
+  openApp(): Promise<void>;
+  completeTask(taskId: string): Promise<boolean>;
+  undoCompleteTask(taskId: string): Promise<boolean>;
+  resizeTray(height: number): void;
+  hideTray(): void;
+  onOpenTask(callback: (taskId: string) => void): () => void;
+  onTrayRefresh(callback: () => void): () => void;
 }
 
 export class DesktopWorkspaceClient implements WorkspaceClient {

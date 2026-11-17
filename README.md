@@ -16,8 +16,9 @@ backup. In the desktop build, attachment bytes are stored under the app's manage
 directory while metadata and the sync outbox live in SQLite. Startup removes orphaned attachment
 blobs. The browser build remains metadata-only for attachment contents. A SQLite-backed local
 repository is ready for the desktop shell. On macOS the desktop build adds a menu bar icon;
-closing the window keeps Moss running, and clicking the icon with either mouse button opens a
-menu that can reopen or quit it.
+closing the window keeps Moss running. Left-clicking the icon opens a list of overdue and
+today's tasks, where tasks can be completed or opened directly. Right-clicking opens a menu that
+can reopen or quit Moss.
 
 ![Moss home overview](docs/preview.png)
 

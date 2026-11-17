@@ -116,6 +116,19 @@ export default {
     back: 'Go back',
     forward: 'Go forward',
   },
+  tray: {
+    title: 'Today',
+    pending: { one: '{count} task', other: '{count} tasks' },
+    overdue: 'Overdue',
+    today: 'Today',
+    overdueDays: { one: '{count} day overdue', other: '{count} days overdue' },
+    completeTask: 'Complete task: {title}',
+    completedTask: 'Completed {title}',
+    openTask: 'Open task: {title}',
+    open: 'Open in Moss',
+    empty: 'Nothing due today',
+    unavailable: 'Tasks are unavailable',
+  },
   vocab: {
     status: {
       backlog: 'Backlog',

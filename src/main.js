@@ -54,6 +54,20 @@ import { setLocale, t } from './i18n/index.js';
 
 document.documentElement.dataset.platform = window.mossDesktop?.platform ?? 'web';
 
+let appBooted = false;
+let pendingTaskId = null;
+
+function openTaskFromDesktop(taskId) {
+  if (!taskId) return;
+  if (!appBooted) {
+    pendingTaskId = taskId;
+    return;
+  }
+  A.openTask({ dataset: { id: taskId } });
+}
+
+window.mossDesktop?.onOpenTask?.(openTaskFromDesktop);
+
 async function boot() {
   try {
     await initWorkspaceClient();
@@ -81,6 +95,12 @@ async function boot() {
     const h = (location.hash || '').slice(1);
     S.ui.route = h && ROUTE_NAMES[h] ? h : S.prefs.home || 'home';
     render();
+    appBooted = true;
+    if (pendingTaskId) {
+      const taskId = pendingTaskId;
+      pendingTaskId = null;
+      openTaskFromDesktop(taskId);
+    }
   } catch (error) {
     console.error('Failed to initialize the workspace', error);
     toast(error instanceof Error ? error.message : t('errors.failedBody'), { kind: 'err', ms: 10000 });

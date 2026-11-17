@@ -86,6 +86,14 @@ export default defineConfig(({ mode }) => {
         : []),
     ],
     resolve: { alias: workspaceAliases },
+    build: {
+      rollupOptions: {
+        input: {
+          main: fileURLToPath(new URL('./index.html', import.meta.url)),
+          tray: fileURLToPath(new URL('./tray.html', import.meta.url)),
+        },
+      },
+    },
     server: { port: 8080 },
   };
 });

@@ -116,6 +116,19 @@ export default {
     back: '后退',
     forward: '前进',
   },
+  tray: {
+    title: '今日',
+    pending: { one: '{count} 项待办', other: '{count} 项待办' },
+    overdue: '已逾期',
+    today: '今日',
+    overdueDays: { one: '逾期 {count} 天', other: '逾期 {count} 天' },
+    completeTask: '完成任务：{title}',
+    completedTask: '已完成「{title}」',
+    openTask: '打开任务：{title}',
+    open: '在 Moss 中打开',
+    empty: '今天没有待办',
+    unavailable: '暂时无法读取任务',
+  },
   vocab: {
     status: {
       backlog: '需求池',
