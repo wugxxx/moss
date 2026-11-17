@@ -36,6 +36,21 @@ const bridge: DesktopAppBridge = {
     ipcRenderer.on(IPC_CHANNELS.appOpenTask, listener);
     return () => ipcRenderer.off(IPC_CHANNELS.appOpenTask, listener);
   },
+  onNavigate(callback: (route: string) => void) {
+    const listener = (_event: Electron.IpcRendererEvent, route: string) => callback(route);
+    ipcRenderer.on(IPC_CHANNELS.appNavigate, listener);
+    return () => ipcRenderer.off(IPC_CHANNELS.appNavigate, listener);
+  },
+  onNewTask(callback: () => void) {
+    const listener = () => callback();
+    ipcRenderer.on(IPC_CHANNELS.appNewTask, listener);
+    return () => ipcRenderer.off(IPC_CHANNELS.appNewTask, listener);
+  },
+  onQuickSearch(callback: () => void) {
+    const listener = () => callback();
+    ipcRenderer.on(IPC_CHANNELS.appQuickSearch, listener);
+    return () => ipcRenderer.off(IPC_CHANNELS.appQuickSearch, listener);
+  },
   onTrayRefresh(callback: () => void) {
     const listener = () => callback();
     ipcRenderer.on(IPC_CHANNELS.trayRefresh, listener);

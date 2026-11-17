@@ -56,6 +56,7 @@ document.documentElement.dataset.platform = window.mossDesktop?.platform ?? 'web
 
 let appBooted = false;
 let pendingTaskId = null;
+let pendingIntent = null;
 
 function openTaskFromDesktop(taskId) {
   if (!taskId) return;
@@ -66,7 +67,27 @@ function openTaskFromDesktop(taskId) {
   A.openTask({ dataset: { id: taskId } });
 }
 
+function runDesktopIntent(intent) {
+  if (!intent) return;
+  if (!appBooted) {
+    pendingIntent = intent;
+    return;
+  }
+  if (intent.type === 'navigate') {
+    if (ROUTE_NAMES[intent.route]) go(intent.route);
+    return;
+  }
+  if (intent.type === 'new-task') {
+    A.newTask(document.body);
+    return;
+  }
+  if (intent.type === 'quick-search') A.openPalette();
+}
+
 window.mossDesktop?.onOpenTask?.(openTaskFromDesktop);
+window.mossDesktop?.onNavigate?.(route => runDesktopIntent({ type: 'navigate', route }));
+window.mossDesktop?.onNewTask?.(() => runDesktopIntent({ type: 'new-task' }));
+window.mossDesktop?.onQuickSearch?.(() => runDesktopIntent({ type: 'quick-search' }));
 
 async function boot() {
   try {
@@ -100,6 +121,11 @@ async function boot() {
       const taskId = pendingTaskId;
       pendingTaskId = null;
       openTaskFromDesktop(taskId);
+    }
+    if (pendingIntent) {
+      const intent = pendingIntent;
+      pendingIntent = null;
+      runDesktopIntent(intent);
     }
   } catch (error) {
     console.error('Failed to initialize the workspace', error);

@@ -9,6 +9,7 @@ import { createSqliteWorkspace, openDatabase, type SqliteWorkspace } from '@moss
 import { seed } from '../../../src/data/seed.js';
 import { AttachmentStore } from './attachment-store.js';
 import { IPC_CHANNELS } from './channels.js';
+import { traySummary } from './tray-summary.js';
 import { readWindowState, resolveWindowState, writeWindowState } from './window-state.js';
 
 let workspace: SqliteWorkspace | undefined;
@@ -57,14 +58,62 @@ function validateSender(event: Electron.IpcMainInvokeEvent): void {
   if (!event.senderFrame || !isTrustedRenderer(event.senderFrame.url)) throw new Error('Untrusted IPC sender');
 }
 
+function localDayKey(date = new Date()): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function sendToMainWindow(window: BrowserWindow, channel: string, ...args: unknown[]): void {
+  if (window.webContents.isLoadingMainFrame()) window.webContents.once('did-finish-load', () => window.webContents.send(channel, ...args));
+  else window.webContents.send(channel, ...args);
+}
+
+function runInMainWindow(channel: string, ...args: unknown[]): void {
+  hideTrayPopover();
+  void showMainWindow()
+    .then(window => sendToMainWindow(window, channel, ...args))
+    .catch(error => console.warn('Failed to run a tray menu action', error));
+}
+
+function toggleLaunchAtLogin(): void {
+  try {
+    app.setLoginItemSettings({ openAtLogin: !app.getLoginItemSettings().openAtLogin });
+  } catch (error) {
+    console.warn('Failed to update the login item', error);
+  }
+}
+
 function buildTrayMenu(): Menu {
   const chinese = app.getLocale().toLowerCase().startsWith('zh');
-  return Menu.buildFromTemplate([
-    { label: chinese ? '打开 Moss' : 'Open Moss', click: () => void showMainWindow() },
-    { label: chinese ? '隐藏 Moss' : 'Hide Moss', click: () => mainWindow?.hide() },
+  const text = (en: string, cn: string) => (chinese ? cn : en);
+  const summary = workspace ? traySummary(workspace.client.snapshot(), localDayKey()) : { pending: 0, overdue: 0 };
+  const today = summary.pending
+    ? text(
+        `Today · ${summary.pending} open${summary.overdue ? ` · ${summary.overdue} overdue` : ''}`,
+        `今日 · ${summary.pending} 项待办${summary.overdue ? ` · ${summary.overdue} 项逾期` : ''}`,
+      )
+    : text('Today · Nothing due', '今日 · 没有待办');
+  const items: Electron.MenuItemConstructorOptions[] = [
+    { label: text('Open Moss', '打开 Moss'), click: () => void showMainWindow().catch(error => console.warn('Failed to show Moss', error)) },
     { type: 'separator' },
-    { label: chinese ? '退出 Moss' : 'Quit Moss', accelerator: 'Command+Q', click: () => app.quit() },
-  ]);
+    { label: text('New Task…', '新建任务…'), accelerator: 'CommandOrControl+N', click: () => runInMainWindow(IPC_CHANNELS.appNewTask) },
+    { label: text('Quick Search…', '快速搜索…'), accelerator: 'CommandOrControl+K', click: () => runInMainWindow(IPC_CHANNELS.appQuickSearch) },
+    { type: 'separator' },
+    { label: today, click: () => runInMainWindow(IPC_CHANNELS.appNavigate, 'focus') },
+    { label: text('Calendar', '日历'), click: () => runInMainWindow(IPC_CHANNELS.appNavigate, 'calendar') },
+    { label: text('All Tasks', '所有任务'), click: () => runInMainWindow(IPC_CHANNELS.appNavigate, 'tasks') },
+    { type: 'separator' },
+    { label: text('Settings…', '设置…'), accelerator: 'CommandOrControl+,', click: () => runInMainWindow(IPC_CHANNELS.appNavigate, 'settings') },
+  ];
+  if (app.isPackaged && (process.platform === 'darwin' || process.platform === 'win32')) {
+    items.push({
+      label: text('Launch at Login', '登录时启动'),
+      type: 'checkbox',
+      checked: app.getLoginItemSettings().openAtLogin,
+      click: () => toggleLaunchAtLogin(),
+    });
+  }
+  items.push({ type: 'separator' }, { label: text('Quit Moss', '退出 Moss'), accelerator: 'Command+Q', click: () => app.quit() });
+  return Menu.buildFromTemplate(items);
 }
 
 function clampNumber(value: number, min: number, max: number): number {
@@ -210,13 +259,14 @@ async function ensureWindow(): Promise<BrowserWindow> {
   return windowCreation;
 }
 
-async function showMainWindow(): Promise<void> {
+async function showMainWindow(): Promise<BrowserWindow> {
   const window = await ensureWindow();
   if (process.platform === 'darwin' && app.isHidden()) app.show();
   if (process.platform === 'darwin') app.focus({ steal: true });
   if (window.isMinimized()) window.restore();
   window.show();
   window.focus();
+  return window;
 }
 
 function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
@@ -273,11 +323,9 @@ function registerTrayIpc(activeWorkspace: SqliteWorkspace): void {
     validateSender(event);
     if (typeof taskId !== 'string' || !activeWorkspace.client.snapshot().tasks.some(task => task.id === taskId)) return;
     hideTrayPopover();
-    await showMainWindow();
-    const window = mainWindow;
-    if (!window || window.isDestroyed()) return;
-    if (window.webContents.isLoadingMainFrame()) window.webContents.once('did-finish-load', () => window.webContents.send(IPC_CHANNELS.appOpenTask, taskId));
-    else window.webContents.send(IPC_CHANNELS.appOpenTask, taskId);
+    const window = await showMainWindow();
+    if (window.isDestroyed()) return;
+    sendToMainWindow(window, IPC_CHANNELS.appOpenTask, taskId);
   });
   ipcMain.handle(IPC_CHANNELS.trayOpenApp, async event => {
     validateSender(event);

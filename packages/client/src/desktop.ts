@@ -24,6 +24,9 @@ export interface DesktopAppBridge extends DesktopWorkspaceBridge {
   resizeTray(height: number): void;
   hideTray(): void;
   onOpenTask(callback: (taskId: string) => void): () => void;
+  onNavigate(callback: (route: string) => void): () => void;
+  onNewTask(callback: () => void): () => void;
+  onQuickSearch(callback: () => void): () => void;
   onTrayRefresh(callback: () => void): () => void;
 }
 
