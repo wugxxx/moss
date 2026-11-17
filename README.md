@@ -2,25 +2,53 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-A calm, local-first project management workspace for solo work: a home overview, Today focus,
-tasks, completed history, projects with editable schedules and milestones, configurable workspace
-labels, overview / board / list / table / calendar / timeline / files views, calendar events,
-favorites, archive, global search and settings. The first release is available in English and
-Simplified Chinese (`zh-CN`), and treats task and event dates as local calendar dates without
-time-zone conversion.
-
-Built with plain JavaScript ES modules and CSS, bundled by [Vite](https://vite.dev). There is no
-UI framework; the only runtime dependency is the bundled Charter webfont. The web build stores
-data in browser `localStorage`; JSON export and import are available under Settings -> Data &
-backup. In the desktop build, attachment bytes are stored under the app's managed user-data
-directory while metadata and the sync outbox live in SQLite. Startup removes orphaned attachment
-blobs. The browser build remains metadata-only for attachment contents. A SQLite-backed local
-repository is ready for the desktop shell. On macOS the desktop build adds a menu bar icon;
-closing the window keeps Moss running. Left-clicking the icon opens a list of overdue and
-today's tasks, where tasks can be completed or opened directly. Right-clicking opens a menu that
-can reopen or quit Moss.
+A calm, local-first project workspace for solo work. It keeps daily commitments, project plans,
+and task detail in one place: a workload home, a focused Today view, flexible task views, editable
+project schedules and milestones, a calendar, and a timeline. The interface is available in
+English and Simplified Chinese (`zh-CN`), and treats task and event dates as local calendar dates
+without time-zone conversion.
 
 ![Moss home overview](docs/preview.png)
+
+_Home: workload snapshot, seven-day due distribution, and unfinished project progress._
+
+![Moss Today focus](docs/preview-today.png)
+
+_Today: overdue triage, completion progress, and tasks due today._
+
+## Features
+
+- **Home overview** — greeting, open, overdue, due-today and upcoming counts, a seven-day due
+  distribution, and progress for every unfinished project.
+- **Today focus** — a completion ring, overdue triage with one-click reschedule to today,
+  expandable overdue lists, and tasks due today in a card grid.
+- **Tasks** — workspace and project tasks in list, board, and table layouts, with filtering,
+  sorting, grouping, bulk actions, and search.
+- **Task detail** — inline editing, rich-text descriptions, status, priority, labels, start and
+  due dates, recurrence, estimates, dependencies, subtasks, attachments, and favorites.
+- **Projects** — overview, board, list, table, calendar, timeline, and files, plus project status,
+  editable schedules, milestones, and saved views.
+- **Favorites and history** — favorite tasks and projects, review completed work, and archive or
+  restore items.
+- **Calendar and timeline** — month and week calendars with project events and drag-to-reschedule;
+  a timeline with week or month zoom, status or project grouping, dependencies, and milestones.
+- **Search and keyboard use** — global search across tasks, projects, and files (including
+  archived items), a command palette, and shortcuts for navigation and quick creation.
+- **Local-first data** — SQLite in the desktop app, `localStorage` in the browser, JSON backup
+  and restore, archive and restore, and optional sync status controls.
+- **macOS menu bar** — a popover for overdue and due-today tasks with completion, undo, and direct
+  opening; its menu adds quick search, navigation, settings, and launch at login.
+- **Settings** — light, dark, or system themes, accent colours, density, language, date and time
+  formats, week start, workspace labels, startup view, default project view, and local profile.
+
+Moss is built with plain JavaScript ES modules and CSS, bundled by [Vite](https://vite.dev). There
+is no UI framework; the only runtime dependency is the bundled Charter webfont. The web build
+stores data in browser `localStorage`; JSON export and import are available under Settings -> Data
+& backup. In the desktop build, attachment bytes are stored under the app's managed user-data
+directory while metadata and the sync outbox live in SQLite. Startup removes orphaned attachment
+blobs. The browser build remains metadata-only for attachment contents. Closing the desktop window
+keeps Moss running on macOS; right-clicking the menu bar icon opens quick actions, navigation,
+settings, launch-at-login, and quit.
 
 ## Getting started
 
@@ -41,67 +69,6 @@ npm test          # unit, contract, sync and SQLite integration tests
 npm run lint      # ESLint
 npm run format    # Prettier
 ```
-
-## Project structure
-
-```
-index.html              HTML entry; loads src/main.js
-src/core/brand.js       single source for the Moss wordmark and app mark
-scripts/generate-brand-assets.mjs  regenerates the favicon and desktop icon
-scripts/generate-tray-icon.mjs     generates the macOS menu bar template from the brand glyph
-public/favicon.svg                 generated brand mark for the web favicon
-public/trayTemplate*.png           generated macOS menu bar template images
-build/icon.svg                     generated brand mark for desktop packaging
-vite.config.js          Vite config, including the Lucide icon-subset plugin
-eslint.config.js        lint rules (ESLint flat config); formatting by Prettier (.prettierrc.json)
-.github/workflows/      CI: lint, format check, build
-docs/preview.png        README screenshot
-packages/
-  contracts/            serializable entities, commands, queries, and results
-  domain/                pure task and project rules
-  application/           command handlers over a repository interface
-  client/                WorkspaceClient interface, with memory, browser, local, desktop, and sync HTTP adapters
-  local-db/              Node SQLite schema, migrations, repository, outbox, importer, and sync runner
-  sync-core/              transport-neutral sync protocol, validation, retries, and pull merging
-  test-fixtures/         shared snapshots and entity builders
-tests/                   package and renderer unit tests
-src/
-  main.js               entry: imports styles and modules, then boots the app
-  styles/
-    index.css           imports every stylesheet in cascade order
-    tokens.css          colours, spacing, type, radius, the shared --gutter
-    fonts.css           bundled Charter webfont
-    base.css  components.css  shell.css  panels.css  overlays.css  states.css  motion.css  responsive.css
-    views/              list, board, table, calendar, timeline, projects & files
-    pages/              focus and settings
-  core/                 utilities, constants, icons, read store, workspace bridge, focus stats, theme
-  data/seed.js          initial empty workspace data
-  i18n/                 locale registry, lookup/interpolation, pluralization, en and zh-CN catalogues
-  ui/                   shared render helpers, toasts, the select dropdown
-  shell/                render loop and router, sidebar/topbar layout, skeletons, view engine
-  components/           task list renderer
-  pages/                one module per route
-  views/                project views: board, table, calendar, timeline, files, overview
-  overlays/             task drawer, modals, popovers, context menu, command palette
-  features/             subtasks and archive rendering
-  actions/              user actions, event wiring, keyboard shortcuts, drag and drop
-apps/desktop/           Electron main process, typed preload bridge, packaging
-```
-
-### Layers
-
-Dependencies point inward:
-
-1. `contracts` defines serializable entities and command/query types.
-2. `domain` holds framework-free business rules.
-3. `application` validates and applies commands against a repository interface.
-4. `client` exposes `WorkspaceClient`; browser and memory adapters select the implementation.
-5. UI actions call the shared workspace client. They do not mutate projects, tasks, files, or
-   saved views directly.
-
-`S.data` is a synchronous read cache for the renderer. It is refreshed from the client after
-every command. Ephemeral UI state and device preferences stay outside the workspace command
-path and may be saved directly.
 
 ## Conventions
 
@@ -135,11 +102,11 @@ The local-first desktop and optional cloud sync design is documented in
 [docs/architecture.md](docs/architecture.md). Remaining cloud, sync, and
 hardening work is tracked in [docs/remaining-work.md](docs/remaining-work.md).
 
-Milestone 1 establishes the command and client boundaries. Milestone 2 adds the SQLite-backed
-local repository, migrations, legacy import, outbox, and tombstones. Milestone 4 now includes
-the offline sync engine: HTTP push/pull, retry scheduling, ordered remote changes, durable pull
+The shared packages establish command and client boundaries, pure task and project rules, and a
+SQLite-backed local repository with migrations, legacy import, an outbox, and tombstones. The
+offline sync engine provides HTTP push/pull, retry scheduling, ordered remote changes, durable pull
 cursors, and sync status controls. A hosted API and PostgreSQL schema are still required for
-cross-device sync. The web build still uses browser `localStorage`; the Electron build connects
-to SQLite through the typed preload adapter. Desktop workspace data lives in
-`app.getPath("userData")/workspace.sqlite3`, while browser preferences and view state remain
-local UI state.
+cross-device sync. The web build uses browser `localStorage`; the Electron build connects to
+SQLite through the typed preload adapter. Desktop workspace data lives in
+`app.getPath("userData")/workspace.sqlite3`, while browser preferences and view state remain local
+UI state.

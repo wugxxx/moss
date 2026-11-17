@@ -2,11 +2,31 @@
 
 [English](README.md) · **简体中文**
 
-Moss 是一款安静、以本地优先的个人项目管理工作台，提供首页概览、今日焦点、任务、已完成记录、带可编辑排期与里程碑的项目、可配置的工作区标签，以及概览 / 看板 / 列表 / 表格 / 日历 / 时间线 / 文件视图、日程、收藏、归档、全局搜索和设置。首个版本支持英文和简体中文（`zh-CN`），并将任务和事件日期视为本地日历日期，不做时区转换。
-
-项目使用原生 JavaScript ES modules 和 CSS 构建，由 [Vite](https://vite.dev) 打包；不使用 UI 框架，唯一的运行时依赖是内置的 Charter 网络字体。Web 版本将数据存储在浏览器 `localStorage` 中，可在“设置 -> 数据与备份”中导出和导入 JSON。桌面版本将附件内容存储在应用托管的用户数据目录中，元数据和同步待发送队列（outbox）位于 SQLite；启动时会清理无归属的附件 blob。浏览器版本的附件仍仅保留元数据。基于 SQLite 的本地仓库已为桌面外壳准备好。macOS 桌面版本会在菜单栏显示图标；关闭窗口后 Moss 继续运行。左键点击图标会显示已逾期和今日待完成的任务，可直接完成或打开任务；右键点击图标会打开菜单，可重新打开或退出。
+Moss 是一款安静、以本地为先的个人项目工作台，把每日承诺、项目计划和任务细节放在同一处：首页概览、今日焦点、灵活的任务视图、可编辑的项目排期与里程碑、日历和时间线。界面提供英文与简体中文（`zh-CN`），任务和事件日期按本地日历日期处理，不做时区转换。
 
 ![Moss 首页概览](docs/preview.png)
+
+_首页：负载概览、未来 7 天到期分布，以及未完成项目的进度。_
+
+![Moss 今日焦点](docs/preview-today.png)
+
+_今日：逾期分流、完成进度，以及今日到期的任务。_
+
+## 功能
+
+- **首页概览** —— 问候语、待办 / 逾期 / 今日到期 / 即将到期统计、未来 7 天到期分布，以及所有未完成项目的进度。
+- **今日焦点** —— 完成进度环、逾期事项分流并可一键顺延至今日、可展开的逾期列表，以及以卡片网格呈现的今日到期任务。
+- **任务** —— 工作区与项目任务支持列表、看板、表格布局，可筛选、排序、分组、批量操作和搜索。
+- **任务详情** —— 行内编辑、富文本描述、状态、优先级、标签、开始与截止日期、重复规则、预估、依赖、子任务、附件和收藏。
+- **项目** —— 概览、看板、列表、表格、日历、时间线和文件视图，以及项目状态、可编辑排期、里程碑和已保存视图。
+- **收藏与历史** —— 收藏任务和项目、回顾已完成工作，并归档或恢复任务与项目。
+- **日历与时间线** —— 月 / 周日历支持项目日程和拖放调整日期；时间线支持周 / 月缩放、按状态或项目分组、依赖关系与里程碑轨道。
+- **搜索与键盘操作** —— 跨任务、项目和文件（含归档内容）的全局搜索、命令面板，以及导航和快速创建快捷键。
+- **本地优先数据** —— 桌面版使用 SQLite，Web 版使用 `localStorage`，支持 JSON 备份与恢复、归档与恢复，以及可选的同步状态控制。
+- **macOS 菜单栏** —— 弹出面板展示逾期和今日到期任务，可完成、撤销并直接打开；菜单中提供快速搜索、导航、设置和登录时启动。
+- **设置** —— 浅色、深色或跟随系统主题，强调色、密度、语言、日期与时间格式、每周起始日、工作区标签、启动页面、默认项目视图和本地个人资料。
+
+Moss 使用原生 JavaScript ES modules 和 CSS 构建，由 [Vite](https://vite.dev) 打包；不使用 UI 框架，唯一的运行时依赖是内置的 Charter 网络字体。Web 版本将数据存储在浏览器 `localStorage` 中，可在“设置 -> 数据与备份”中导出和导入 JSON。桌面版本将附件内容存储在应用托管的用户数据目录中，元数据和同步待发送队列（outbox）位于 SQLite；启动时会清理无归属的附件 blob。浏览器版本的附件仍仅保留元数据。macOS 桌面版关闭窗口后 Moss 继续运行；右键点击菜单栏图标可打开快速操作、导航、设置、登录时启动和退出。
 
 ## 快速开始
 
@@ -26,64 +46,6 @@ npm test             # 单元、契约、同步和 SQLite 集成测试
 npm run lint         # ESLint
 npm run format       # Prettier
 ```
-
-## 项目结构
-
-```
-index.html              HTML 入口，加载 src/main.js
-src/core/brand.js       Moss 文字标识和应用图标的唯一来源
-scripts/generate-brand-assets.mjs  重新生成网站图标和桌面应用图标
-scripts/generate-tray-icon.mjs     从品牌图形生成 macOS 菜单栏模板图标
-public/favicon.svg                 由品牌源文件生成的网站图标
-public/trayTemplate*.png           生成的 macOS 菜单栏模板图标
-build/icon.svg                     由品牌源文件生成的桌面应用图标
-vite.config.js          Vite 配置，包括 Lucide 图标子集插件
-eslint.config.js        lint 规则（ESLint flat config）；格式化使用 Prettier（.prettierrc.json）
-.github/workflows/      CI：lint、格式检查、构建
-docs/preview.png        README 截图
-packages/
-  contracts/            可序列化实体、命令、查询和结果
-  domain/               纯任务与项目规则
-  application/          基于仓库接口的命令处理器
-  client/               WorkspaceClient 接口，以及内存、浏览器、本地、桌面和同步 HTTP 适配器
-  local-db/             Node SQLite schema、迁移、仓库、outbox、导入器和同步运行器
-  sync-core/            与传输无关的同步协议、校验、重试和拉取合并
-  test-fixtures/        共享快照和实体构建器
-tests/                   包和渲染层单元测试
-src/
-  main.js               入口：导入样式和模块，然后启动应用
-  styles/
-    index.css           按层叠顺序导入所有样式表
-    tokens.css          颜色、间距、字体、圆角，以及共享的 --gutter
-    fonts.css           内置的 Charter 网络字体
-    base.css  components.css  shell.css  panels.css  overlays.css  states.css  motion.css  responsive.css
-    views/              列表、看板、表格、日历、时间线、项目与文件视图
-    pages/              今日焦点与设置
-  core/                 工具、常量、图标、读取存储、工作区桥接、焦点统计和主题
-  data/seed.js          初始的空工作区数据
-  i18n/                 语言注册表、查找/插值、复数规则，以及英文和 zh-CN 语言目录
-  ui/                   共享渲染辅助函数、toast 和下拉选择框
-  shell/                渲染循环与路由、侧边栏/顶栏布局、骨架屏和视图引擎
-  components/           任务列表渲染器
-  pages/                每个路由一个模块
-  views/                项目视图：看板、表格、日历、时间线、文件和概览
-  overlays/             任务抽屉、模态框、弹出层、上下文菜单和命令面板
-  features/             子任务和归档渲染
-  actions/              用户操作、事件绑定、键盘快捷键和拖放
-apps/desktop/           Electron 主进程、类型化 preload 桥接和打包配置
-```
-
-### 分层架构
-
-依赖关系由外向内收敛：
-
-1. `contracts` 定义可序列化的实体以及命令/查询类型。
-2. `domain` 包含不依赖框架的业务规则。
-3. `application` 通过仓库接口校验并执行命令。
-4. `client` 暴露 `WorkspaceClient`；浏览器和内存适配器负责选择具体实现。
-5. UI 操作调用共享的 workspace client，不直接修改项目、任务、文件或已保存视图。
-
-`S.data` 是渲染进程使用的同步读取缓存。每次执行命令后，它都会从 client 刷新。临时 UI 状态和设备偏好不经过工作区命令路径，可以直接保存。
 
 ## 开发约定
 
@@ -106,4 +68,4 @@ apps/desktop/           Electron 主进程、类型化 preload 桥接和打包�
 
 本地优先桌面应用及可选云同步的设计记录在 [docs/architecture.md](docs/architecture.md) 中。剩余云同步和加固工作记录在 [docs/remaining-work.md](docs/remaining-work.md) 中。
 
-里程碑 1 建立了命令和 client 的边界。里程碑 2 增加了基于 SQLite 的本地仓库、迁移、旧版数据导入、outbox 和 tombstone。里程碑 4 现在包含离线同步引擎：HTTP 推送/拉取、重试调度、有序的远端变更、持久化拉取游标和同步状态控制。跨设备同步仍需要托管 API 和 PostgreSQL schema。Web 版本仍使用浏览器 `localStorage`；Electron 版本通过类型化 preload 适配器连接 SQLite。桌面工作区数据位于 `app.getPath("userData")/workspace.sqlite3`，浏览器偏好和视图状态仍作为本地 UI 状态保存。
+共享包建立了命令和 client 的边界、纯任务与项目规则，以及基于 SQLite 的本地仓库，包括迁移、旧版数据导入、outbox 和 tombstone。离线同步引擎提供 HTTP 推送/拉取、重试调度、有序的远端变更、持久化拉取游标和同步状态控制。跨设备同步仍需要托管 API 和 PostgreSQL schema。Web 版本使用浏览器 `localStorage`；Electron 版本通过类型化 preload 适配器连接 SQLite。桌面工作区数据位于 `app.getPath("userData")/workspace.sqlite3`，浏览器偏好和视图状态仍作为本地 UI 状态保存。
