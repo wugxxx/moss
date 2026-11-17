@@ -327,10 +327,9 @@ function registerTrayIpc(activeWorkspace: SqliteWorkspace): void {
     if (window.isDestroyed()) return;
     sendToMainWindow(window, IPC_CHANNELS.appOpenTask, taskId);
   });
-  ipcMain.handle(IPC_CHANNELS.trayOpenApp, async event => {
+  ipcMain.handle(IPC_CHANNELS.trayOpenApp, event => {
     validateSender(event);
-    hideTrayPopover();
-    await showMainWindow();
+    runInMainWindow(IPC_CHANNELS.appNavigate, 'focus');
   });
   ipcMain.handle(IPC_CHANNELS.trayCompleteTask, async (event, taskId: string) => {
     validateSender(event);

@@ -64,6 +64,7 @@ function openTaskFromDesktop(taskId) {
     pendingTaskId = taskId;
     return;
   }
+  if (S.ui.route !== 'focus') go('focus');
   A.openTask({ dataset: { id: taskId } });
 }
 
