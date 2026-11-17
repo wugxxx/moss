@@ -11,7 +11,7 @@
     "packages/*"
   ],
   "scripts": {
-    "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "brand:assets": "node scripts/generate-brand-assets.mjs && node scripts/generate-tray-icon.mjs",
     "predev": "npm run brand:assets",
     "dev": "vite",
     "predev:desktop": "npm run brand:assets",

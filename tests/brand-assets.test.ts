@@ -4,6 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { BRAND_MARK_SVG, LOGO, MARK } from '../src/core/brand.js';
 
 const generatedFiles = ['public/favicon.svg', 'build/icon.svg'];
+const trayFiles: Array<[string, number]> = [
+  ['public/trayTemplate.png', 18],
+  ['public/trayTemplate@2x.png', 36],
+  ['public/trayTemplate@3x.png', 54],
+];
 
 describe('brand assets', () => {
   it.each(generatedFiles)('%s matches the canonical mark', file => {
@@ -21,5 +26,13 @@ describe('brand assets', () => {
     expect(LOGO(24)).toContain('fill="currentColor"');
     expect(LOGO(24)).toContain('<path');
     expect(LOGO(24)).not.toContain('<text');
+  });
+
+  it.each(trayFiles)('%s is a %i×%i template PNG', (file, size) => {
+    const content = readFileSync(resolve(file));
+    expect(content.subarray(1, 4).toString('ascii')).toBe('PNG');
+    expect(content.readUInt32BE(16)).toBe(size);
+    expect(content.readUInt32BE(20)).toBe(size);
+    expect(content[25]).toBe(6);
   });
 });

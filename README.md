@@ -15,7 +15,9 @@ data in browser `localStorage`; JSON export and import are available under Setti
 backup. In the desktop build, attachment bytes are stored under the app's managed user-data
 directory while metadata and the sync outbox live in SQLite. Startup removes orphaned attachment
 blobs. The browser build remains metadata-only for attachment contents. A SQLite-backed local
-repository is ready for the desktop shell.
+repository is ready for the desktop shell. On macOS the desktop build adds a menu bar icon;
+closing the window keeps Moss running, and clicking the icon with either mouse button opens a
+menu that can reopen or quit it.
 
 ![Moss home overview](docs/preview.png)
 
@@ -26,7 +28,7 @@ Requires Node.js 24 or newer. The desktop main process uses Node's built-in
 
 ```bash
 npm install
-npm run brand:assets # regenerate favicon and desktop icon from src/core/brand.js
+npm run brand:assets # regenerate favicon, desktop icon, and menu bar template
 npm run dev       # http://localhost:8080 with hot reload
 npm run build     # production build in dist/
 npm run dev:desktop # Vite renderer plus the Electron desktop shell
@@ -45,8 +47,10 @@ npm run format    # Prettier
 index.html              HTML entry; loads src/main.js
 src/core/brand.js       single source for the Moss wordmark and app mark
 scripts/generate-brand-assets.mjs  regenerates the favicon and desktop icon
-public/favicon.svg      generated brand mark for the web favicon
-build/icon.svg          generated brand mark for desktop packaging
+scripts/generate-tray-icon.mjs     generates the macOS menu bar template from the brand glyph
+public/favicon.svg                 generated brand mark for the web favicon
+public/trayTemplate*.png           generated macOS menu bar template images
+build/icon.svg                     generated brand mark for desktop packaging
 vite.config.js          Vite config, including the Lucide icon-subset plugin
 eslint.config.js        lint rules (ESLint flat config); formatting by Prettier (.prettierrc.json)
 .github/workflows/      CI: lint, format check, build

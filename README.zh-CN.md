@@ -4,7 +4,7 @@
 
 Moss 是一款安静、以本地优先的个人项目管理工作台，提供首页概览、今日焦点、任务、已完成记录、带可编辑排期与里程碑的项目、可配置的工作区标签，以及概览 / 看板 / 列表 / 表格 / 日历 / 时间线 / 文件视图、日程、收藏、归档、全局搜索和设置。首个版本支持英文和简体中文（`zh-CN`），并将任务和事件日期视为本地日历日期，不做时区转换。
 
-项目使用原生 JavaScript ES modules 和 CSS 构建，由 [Vite](https://vite.dev) 打包；不使用 UI 框架，唯一的运行时依赖是内置的 Charter 网络字体。Web 版本将数据存储在浏览器 `localStorage` 中，可在“设置 -> 数据与备份”中导出和导入 JSON。桌面版本将附件内容存储在应用托管的用户数据目录中，元数据和同步待发送队列（outbox）位于 SQLite；启动时会清理无归属的附件 blob。浏览器版本的附件仍仅保留元数据。基于 SQLite 的本地仓库已为桌面外壳准备好。
+项目使用原生 JavaScript ES modules 和 CSS 构建，由 [Vite](https://vite.dev) 打包；不使用 UI 框架，唯一的运行时依赖是内置的 Charter 网络字体。Web 版本将数据存储在浏览器 `localStorage` 中，可在“设置 -> 数据与备份”中导出和导入 JSON。桌面版本将附件内容存储在应用托管的用户数据目录中，元数据和同步待发送队列（outbox）位于 SQLite；启动时会清理无归属的附件 blob。浏览器版本的附件仍仅保留元数据。基于 SQLite 的本地仓库已为桌面外壳准备好。macOS 桌面版本会在菜单栏显示图标；关闭窗口后 Moss 继续运行，左键或右键点击图标都会打开菜单，可重新打开或退出。
 
 ![Moss 首页概览](docs/preview.png)
 
@@ -14,7 +14,7 @@ Moss 是一款安静、以本地优先的个人项目管理工作台，提供首
 
 ```bash
 npm install
-npm run brand:assets # 从 src/core/brand.js 重新生成网站图标和桌面图标
+npm run brand:assets # 从 src/core/brand.js 重新生成网站图标、桌面图标和菜单栏模板
 npm run dev          # 启动 http://localhost:8080，支持热更新
 npm run build        # 在 dist/ 中生成生产构建
 npm run dev:desktop  # 同时启动 Vite 渲染进程和 Electron 桌面外壳
@@ -33,8 +33,10 @@ npm run format       # Prettier
 index.html              HTML 入口，加载 src/main.js
 src/core/brand.js       Moss 文字标识和应用图标的唯一来源
 scripts/generate-brand-assets.mjs  重新生成网站图标和桌面应用图标
-public/favicon.svg      由品牌源文件生成的网站图标
-build/icon.svg          由品牌源文件生成的桌面应用图标
+scripts/generate-tray-icon.mjs     从品牌图形生成 macOS 菜单栏模板图标
+public/favicon.svg                 由品牌源文件生成的网站图标
+public/trayTemplate*.png           生成的 macOS 菜单栏模板图标
+build/icon.svg                     由品牌源文件生成的桌面应用图标
 vite.config.js          Vite 配置，包括 Lucide 图标子集插件
 eslint.config.js        lint 规则（ESLint flat config）；格式化使用 Prettier（.prettierrc.json）
 .github/workflows/      CI：lint、格式检查、构建

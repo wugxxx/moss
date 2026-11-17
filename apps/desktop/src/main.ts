@@ -1,7 +1,7 @@
 import { join, sep } from 'node:path';
 import { stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { app, BrowserWindow, ipcMain, screen, session, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, screen, session, shell, Tray } from 'electron';
 import type { WorkspaceCommand, WorkspaceQuery, WorkspaceSnapshot } from '@moss/contracts';
 import type { CommandResult } from '@moss/contracts';
 import { HttpSyncTransport, type SaveAttachmentInput } from '@moss/client';
@@ -14,8 +14,13 @@ import { readWindowState, resolveWindowState, writeWindowState } from './window-
 let workspace: SqliteWorkspace | undefined;
 let attachmentStore: AttachmentStore | undefined;
 let flushWindowState: (() => void) | undefined;
+let mainWindow: BrowserWindow | undefined;
+let windowCreation: Promise<BrowserWindow> | undefined;
+let tray: Tray | undefined;
+let isQuitting = false;
 const WINDOW_VERTICAL_OFFSET = 48;
 const DEFAULT_WINDOW = { width: 1440, height: 920, minWidth: 780, minHeight: 600 };
+const FALLBACK_TRAY_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
 app.setName('Moss');
 
@@ -42,6 +47,51 @@ function broadcastChange(): void {
 
 function validateSender(event: Electron.IpcMainInvokeEvent): void {
   if (!event.senderFrame || !isTrustedRenderer(event.senderFrame.url)) throw new Error('Untrusted IPC sender');
+}
+
+function buildTrayMenu(): Menu {
+  const chinese = app.getLocale().toLowerCase().startsWith('zh');
+  return Menu.buildFromTemplate([
+    { label: chinese ? '打开 Moss' : 'Open Moss', click: () => void showMainWindow() },
+    { label: chinese ? '隐藏 Moss' : 'Hide Moss', click: () => mainWindow?.hide() },
+    { type: 'separator' },
+    { label: chinese ? '退出 Moss' : 'Quit Moss', accelerator: 'Command+Q', click: () => app.quit() },
+  ]);
+}
+
+function createTray(): void {
+  if (process.platform !== 'darwin' || tray) return;
+  const iconPath = join(app.getAppPath(), app.isPackaged ? 'dist/trayTemplate.png' : 'public/trayTemplate.png');
+  let icon = nativeImage.createFromPath(iconPath);
+  const hasIcon = !icon.isEmpty();
+  if (hasIcon) icon.setTemplateImage(true);
+  else icon = nativeImage.createFromDataURL(FALLBACK_TRAY_ICON);
+
+  tray = new Tray(icon);
+  tray.setToolTip('Moss');
+  if (!hasIcon) tray.setTitle('Moss');
+  const openMenu = () => tray?.popUpContextMenu(buildTrayMenu());
+  tray.on('click', openMenu);
+  tray.on('right-click', openMenu);
+}
+
+async function ensureWindow(): Promise<BrowserWindow> {
+  if (mainWindow && !mainWindow.isDestroyed()) return mainWindow;
+  if (!windowCreation) {
+    windowCreation = createWindow().finally(() => {
+      windowCreation = undefined;
+    });
+  }
+  return windowCreation;
+}
+
+async function showMainWindow(): Promise<void> {
+  const window = await ensureWindow();
+  if (process.platform === 'darwin' && app.isHidden()) app.show();
+  if (process.platform === 'darwin') app.focus({ steal: true });
+  if (window.isMinimized()) window.restore();
+  window.show();
+  window.focus();
 }
 
 function registerWorkspaceIpc(activeWorkspace: SqliteWorkspace): void {
@@ -126,7 +176,7 @@ function registerAttachmentIpc(store: AttachmentStore): void {
   });
 }
 
-async function createWindow(): Promise<void> {
+async function createWindow(): Promise<BrowserWindow> {
   const windowStatePath = join(app.getPath('userData'), 'window-state.json');
   const savedWindowState = readWindowState(windowStatePath);
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -160,6 +210,7 @@ async function createWindow(): Promise<void> {
       sandbox: true,
     },
   });
+  mainWindow = window;
 
   const saveWindowState = () => {
     if (window.isDestroyed()) return;
@@ -187,8 +238,15 @@ async function createWindow(): Promise<void> {
   window.on('move', scheduleWindowStateSave);
   window.on('maximize', scheduleWindowStateSave);
   window.on('unmaximize', scheduleWindowStateSave);
-  window.on('close', () => {
+  window.on('close', event => {
     flushWindowState?.();
+    if (process.platform === 'darwin' && !isQuitting) {
+      event.preventDefault();
+      window.hide();
+    }
+  });
+  window.on('closed', () => {
+    if (mainWindow === window) mainWindow = undefined;
     flushWindowState = undefined;
   });
 
@@ -214,16 +272,14 @@ async function createWindow(): Promise<void> {
 
   if (process.env.VITE_DEV_SERVER_URL) await window.loadURL(process.env.VITE_DEV_SERVER_URL);
   else await window.loadFile(join(app.getAppPath(), 'dist/index.html'));
+  return window;
 }
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', () => {
-    const window = BrowserWindow.getAllWindows()[0];
-    if (!window) return;
-    if (window.isMinimized()) window.restore();
-    window.focus();
+    if (app.isReady()) void showMainWindow();
   });
 
   app
@@ -262,6 +318,7 @@ if (!app.requestSingleInstanceLock()) {
       registerAttachmentIpc(attachmentStore);
 
       await createWindow();
+      createTray();
       if (syncBaseUrl) {
         void workspace.client
           .sync()
@@ -269,7 +326,7 @@ if (!app.requestSingleInstanceLock()) {
           .catch(error => console.warn('Startup sync failed', error));
       }
       app.on('activate', () => {
-        if (!BrowserWindow.getAllWindows().length) void createWindow();
+        void showMainWindow();
       });
     })
     .catch(error => {
@@ -283,6 +340,9 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  isQuitting = true;
+  tray?.destroy();
+  tray = undefined;
   flushWindowState?.();
   workspace?.syncRunner.dispose();
   workspace?.db.close();
