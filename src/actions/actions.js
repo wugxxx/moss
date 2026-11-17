@@ -260,6 +260,26 @@ A.ctxBtn = el => {
 A.popPick = el => {
   const p = S.ui.pop;
   let v = el.dataset.v;
+  if (p.id === '__pform' || p.id === '__eform') {
+    v = v || '';
+    if (p.id === '__pform') {
+      if (p.field === 'milestone') {
+        const milestone = S.ui.pform.milestones[p.i];
+        if (!milestone) return;
+        milestone.date = v;
+        S.ui.errors.pmilestone = null;
+      } else {
+        S.ui.pform[p.field] = v;
+        S.ui.errors.pdate = null;
+      }
+    } else {
+      S.ui.eform[p.field] = v;
+      S.ui.errors.edate = null;
+    }
+    S.ui.pop = null;
+    render();
+    return;
+  }
   if (p.type === 'date' && p.field === 'subdue') {
     const t = task(p.id);
     const sb = t?.subtasks[p.i];
@@ -1374,7 +1394,7 @@ A.submitEvent = () => {
   const m = S.ui.modals[S.ui.modals.length - 1];
   const f = S.ui.eform;
   f.title = ($('#e-title')?.value || '').trim();
-  f.date = $('#e-date')?.value || '';
+  f.date = f.date || '';
   f.time = $('#e-time')?.value || '';
   f.project = $('#e-project')?.value || f.project;
   f.notes = $('#e-notes')?.value || '';
@@ -1520,7 +1540,7 @@ A.pformSet = el => {
   S.ui.pform[el.dataset.f] = el.dataset.v;
   if (el.dataset.f === 'tmpl') {
     const t = TEMPLATES.find(x => x.id === el.dataset.v);
-    if (t && S.ui.pform.icon === 'folder') S.ui.pform.icon = t.icon === 'file' ? 'folder' : t.icon;
+    if (t) S.ui.pform.icon = t.icon === 'file' ? 'folder' : t.icon;
   }
   render();
 };
@@ -1544,8 +1564,8 @@ A.submitProject = () => {
   const f = S.ui.pform;
   f.name = ($('#p-name')?.value || '').trim();
   f.desc = $('#p-desc')?.value || '';
-  f.start = $('#p-start')?.value || '';
-  f.due = $('#p-due')?.value || '';
+  f.start = f.start || '';
+  f.due = f.due || '';
   f.milestones = f.milestones.map(milestone => ({ name: milestone.name.trim(), date: milestone.date })).filter(milestone => milestone.name || milestone.date);
   S.ui.errors.pname = null;
   S.ui.errors.pdate = null;

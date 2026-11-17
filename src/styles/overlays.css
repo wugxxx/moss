@@ -70,6 +70,80 @@
 .modal-f .sp {
   flex: 1;
 }
+.tmpls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.tmpls .opt {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-areas:
+    'icon name'
+    'icon meta';
+  align-items: center;
+  align-content: center;
+  column-gap: 9px;
+  row-gap: 1px;
+  padding: 9px 30px 9px 10px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--text-2);
+  transition:
+    border-color var(--dur),
+    background var(--dur);
+}
+.tmpls .opt > .i {
+  grid-area: icon;
+  color: var(--text-3);
+  transition: color var(--dur);
+}
+.tmpls .opt > b {
+  grid-area: name;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tmpls .opt > .opt-meta {
+  grid-area: meta;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--text-3);
+}
+.tmpls .opt:hover {
+  border-color: var(--border-strong);
+}
+.tmpls .opt.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.tmpls .opt.on > .i {
+  color: var(--accent);
+}
+.tmpl-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-full);
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--on-accent);
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity var(--dur),
+    transform var(--dur);
+}
+.tmpls .opt.on .tmpl-check {
+  opacity: 1;
+  transform: none;
+}
 @keyframes modalIn {
   from {
     opacity: 0;

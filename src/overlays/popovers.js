@@ -30,9 +30,7 @@ export function openPop(el, extra = {}) {
     ...extra,
   };
   if (d.pop === 'date') {
-    const tk = task(d.id);
-    const cur = S.ui.pop.id === '__form' ? S.ui.form[d.field] : d.field === 'subdue' ? tk?.subtasks[+d.i]?.due : tk?.[d.field];
-    S.ui.pop.m = iso(cur ? parse(cur) : TODAY);
+    S.ui.pop.m = iso(parse(datePopValue(S.ui.pop)) || TODAY);
   }
   render();
   setTimeout(() => {
@@ -66,6 +64,13 @@ export function closePop() {
 }
 export function tgt(p) {
   return p.id === '__form' ? S.ui.form : task(p.id);
+}
+function datePopValue(p) {
+  if (p.id === '__form') return S.ui.form?.[p.field] || '';
+  if (p.id === '__pform') return p.field === 'milestone' ? S.ui.pform?.milestones?.[p.i]?.date || '' : S.ui.pform?.[p.field] || '';
+  if (p.id === '__eform') return S.ui.eform?.[p.field] || '';
+  const tk = task(p.id);
+  return p.field === 'subdue' ? tk?.subtasks?.[p.i]?.due || '' : tk?.[p.field] || '';
 }
 export function popList(items, opt = {}) {
   const q = (S.ui.pop.q || '').toLowerCase();
@@ -161,7 +166,7 @@ export function popHtml(p) {
       break;
     }
     case 'date': {
-      const val = p.field === 'subdue' ? t?.subtasks[p.i]?.due : t?.[p.field];
+      const val = datePopValue(p);
       const q = [
         [tr('time.today'), 0],
         [tr('time.tomorrow'), 1],

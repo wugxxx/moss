@@ -60,6 +60,11 @@ export function modalHtml(m) {
 export function formChip(pop, html, label) {
   return `<button class="pillbtn bordered" data-a="pop" data-pop="${pop}" data-id="__form" ${pop === 'date' ? `data-field="${label}"` : ''} aria-label="${esc(label)}">${html}</button>`;
 }
+function dateField({ id, form, field, value, label, error = false, milestoneIndex, short = false, style = '' }) {
+  const pop = S.ui.pop;
+  const open = pop?.type === 'date' && pop.id === form && pop.field === field && (milestoneIndex == null ? pop.i == null : pop.i === milestoneIndex);
+  return `<button type="button" class="input datefield ${open ? 'on' : ''} ${error ? 'is-error' : ''}" id="${id}" data-a="pop" data-pop="date" data-id="${form}" data-field="${field}" ${milestoneIndex != null ? `data-i="${milestoneIndex}"` : ''} aria-label="${esc(label)}" aria-haspopup="menu" aria-expanded="${open}"${style ? ` style="${style}"` : ''}>${ic('calendar', 14)}<span class="${value ? '' : 'faint'}">${value ? esc(fmtDate(value, short ? false : true)) : esc(tr('tasks.setDate'))}</span></button>`;
+}
 function labelModal(m, H) {
   const f = S.ui.lform;
   const err = S.ui.errors.labelName;
@@ -216,8 +221,8 @@ export function projectModal(m, H) {
         .join('')}</div></div>
     </div>
     <div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start">
-      <div class="field" style="flex:1;min-width:150px"><label class="label" for="p-start">${tr('common.startDate')}</label><input type="date" class="input ${dateErr ? 'is-error' : ''}" id="p-start" data-in="pform" data-f="start" value="${f.start || ''}"></div>
-      <div class="field" style="flex:1;min-width:150px"><label class="label" for="p-due">${tr('modals.targetDate')}</label><input type="date" class="input" id="p-due" data-in="pform" data-f="due" value="${f.due || ''}"></div>
+      <div class="field" style="flex:1;min-width:150px"><label class="label" for="p-start">${tr('common.startDate')}</label>${dateField({ id: 'p-start', form: '__pform', field: 'start', value: f.start, label: tr('common.startDate'), error: !!dateErr })}</div>
+      <div class="field" style="flex:1;min-width:150px"><label class="label" for="p-due">${tr('modals.targetDate')}</label>${dateField({ id: 'p-due', form: '__pform', field: 'due', value: f.due, label: tr('modals.targetDate'), error: !!dateErr })}</div>
     </div>
     ${dateErr ? `<span class="err">${ic('circle-alert', 12)}${dateErr}</span>` : ''}
     <div class="field">
@@ -227,14 +232,14 @@ export function projectModal(m, H) {
           ? `<div class="col" style="gap:6px">${f.milestones
               .map(
                 (milestone, i) =>
-                  `<div class="row" style="gap:6px;align-items:flex-start"><input class="input grow" id="p-ms-name-${i}" data-in="pformMilestone" data-i="${i}" data-f="name" value="${esc(milestone.name)}" placeholder="${tr('modals.milestoneName')}" aria-label="${tr('modals.milestoneNumber', { count: i + 1 })}"><input type="date" class="input" style="width:145px" data-in="pformMilestone" data-i="${i}" data-f="date" value="${milestone.date || ''}" aria-label="${tr('modals.milestoneDate', { count: i + 1 })}"><button type="button" class="ibtn ibtn-sm" data-a="pformRmMilestone" data-i="${i}" aria-label="${tr('modals.removeMilestone')}">${ic('trash-2', 14)}</button></div>`,
+                  `<div class="row" style="gap:6px;align-items:flex-start"><input class="input grow" id="p-ms-name-${i}" data-in="pformMilestone" data-i="${i}" data-f="name" value="${esc(milestone.name)}" placeholder="${tr('modals.milestoneName')}" aria-label="${tr('modals.milestoneNumber', { count: i + 1 })}">${dateField({ id: `p-ms-date-${i}`, form: '__pform', field: 'milestone', milestoneIndex: i, value: milestone.date, label: tr('modals.milestoneDate', { count: i + 1 }), error: !!milestoneErr, short: true, style: 'width:152px;flex-shrink:0' })}<button type="button" class="ibtn ibtn-sm" data-a="pformRmMilestone" data-i="${i}" aria-label="${tr('modals.removeMilestone')}">${ic('trash-2', 14)}</button></div>`,
               )
               .join('')}</div>`
           : `<p class="hint">${tr('modals.milestonesHelp')}</p>`
       }
       ${milestoneErr ? `<span class="err">${ic('circle-alert', 12)}${milestoneErr}</span>` : ''}
     </div>
-    ${m.edit ? '' : `<div class="field"><span class="label">${tr('modals.template')}</span><div class="tmpls" role="radiogroup">${TEMPLATES.map(t => `<button type="button" role="radio" aria-checked="${f.tmpl === t.id}" class="opt ${f.tmpl === t.id ? 'on' : ''}" data-a="pformSet" data-f="tmpl" data-v="${t.id}" style="padding:10px">${ic(t.icon, 16)}<b style="font-size:12.5px">${t.name}</b><span>${t.tasks.length ? tr('modals.starterTasks', { count: t.tasks.length }) : t.desc}</span></button>`).join('')}</div></div>`}
+    ${m.edit ? '' : `<div class="field"><span class="label">${tr('modals.template')}</span><div class="tmpls" role="radiogroup" aria-label="${tr('modals.template')}">${TEMPLATES.map(t => `<button type="button" role="radio" aria-checked="${f.tmpl === t.id}" class="opt ${f.tmpl === t.id ? 'on' : ''}" data-a="pformSet" data-f="tmpl" data-v="${t.id}">${ic(t.icon, 16)}<b>${t.name}</b><span class="opt-meta">${t.tasks.length ? tr('modals.starterTasks', { count: t.tasks.length }) : t.desc}</span><span class="tmpl-check" aria-hidden="true">${ic('check', 11)}</span></button>`).join('')}</div></div>`}
   </form>
   <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">${tr('common.cancel')}</button><button class="btn btn-primary" data-a="submitProject">${m.edit ? tr('modals.saveChanges') : tr('modals.createProject')}</button></div>`;
 }
@@ -249,7 +254,7 @@ export function eventModal(m, H) {
   <form class="modal-b" data-submit="submitEvent">
     <div class="field"><label class="label" for="e-title">${tr('modals.eventTitle')}</label><input class="input ${titleErr ? 'is-error' : ''}" id="e-title" data-in="eform" data-f="title" value="${esc(f.title)}" placeholder="${tr('modals.eventTitlePlaceholder')}" autofocus aria-invalid="${!!titleErr}">${titleErr ? `<span class="err">${ic('circle-alert', 12)}${titleErr}</span>` : ''}</div>
     <div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-start">
-      <div class="field" style="flex:1;min-width:150px"><label class="label" for="e-date">${tr('common.date')}</label><input type="date" class="input ${dateErr ? 'is-error' : ''}" id="e-date" data-in="eform" data-f="date" value="${f.date || ''}">${dateErr ? `<span class="err">${ic('circle-alert', 12)}${dateErr}</span>` : ''}</div>
+      <div class="field" style="flex:1;min-width:150px"><label class="label" for="e-date">${tr('common.date')}</label>${dateField({ id: 'e-date', form: '__eform', field: 'date', value: f.date, label: tr('common.date'), error: !!dateErr })}${dateErr ? `<span class="err">${ic('circle-alert', 12)}${dateErr}</span>` : ''}</div>
       <div class="field" style="flex:1;min-width:150px"><label class="label" for="e-time">${tr('modals.time')}</label><input type="time" class="input ${timeErr ? 'is-error' : ''}" id="e-time" data-in="eform" data-f="time" value="${f.time || ''}">${timeErr ? `<span class="err">${ic('circle-alert', 12)}${timeErr}</span>` : ''}</div>
     </div>
     <div class="field"><label class="label" for="e-project">${tr('common.project')}</label><select class="select ${projectErr ? 'is-error' : ''}" id="e-project" data-in="eform" data-f="project">${projects.map(project => `<option value="${project.id}" ${project.id === f.project ? 'selected' : ''}>${esc(project.name)}</option>`).join('')}</select>${projectErr ? `<span class="err">${ic('circle-alert', 12)}${projectErr}</span>` : ''}</div>
