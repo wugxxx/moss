@@ -51,12 +51,38 @@ import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { toast } from './ui/toast.js';
 import { workspace } from './core/workspace-client.js';
 import { setLocale, t } from './i18n/index.js';
+import { refreshToday } from './core/utils.js';
 
 document.documentElement.dataset.platform = window.mossDesktop?.platform ?? 'web';
 
 let appBooted = false;
 let pendingTaskId = null;
 let pendingIntent = null;
+let dayRolloverTimer = null;
+
+function scheduleDayRollover() {
+  clearTimeout(dayRolloverTimer);
+  const now = new Date();
+  const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  dayRolloverTimer = setTimeout(
+    () => {
+      if (appBooted && refreshToday()) render();
+      scheduleDayRollover();
+    },
+    nextDay.getTime() - now.getTime() + 1000,
+  );
+}
+
+function refreshOnResume() {
+  if (appBooted && refreshToday()) render();
+  scheduleDayRollover();
+}
+
+window.addEventListener('focus', refreshOnResume);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshOnResume();
+});
+scheduleDayRollover();
 
 function openTaskFromDesktop(taskId) {
   if (!taskId) return;

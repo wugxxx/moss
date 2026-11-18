@@ -18,7 +18,13 @@ export const sod = d => {
   x.setHours(0, 0, 0, 0);
   return x;
 };
-export const TODAY = sod(new Date());
+export let TODAY = sod(new Date());
+export function refreshToday() {
+  const current = sod(new Date());
+  if (current.getTime() === TODAY.getTime()) return false;
+  TODAY = current;
+  return true;
+}
 export const iso = d => {
   const x = new Date(d);
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;

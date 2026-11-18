@@ -1,7 +1,7 @@
 /* =====================================================================
    SHELL: render loop, router, sidebar, window bar, skeletons, filter engine
    ===================================================================== */
-import { $, $$ } from '../core/utils.js';
+import { $, $$, refreshToday } from '../core/utils.js';
 import { D, S, proj } from '../core/store.js';
 import { applyPrefs } from '../core/theme.js';
 import { enhanceSelects, selectMenu } from '../ui/select.js';
@@ -167,6 +167,7 @@ function restoreRichTextSelection(editor, saved) {
   selection?.addRange(range);
 }
 export function render() {
+  refreshToday();
   applyPrefs();
   const prevOv = render._ov || {};
   const ov = { pop: !!S.ui.pop, modals: S.ui.modals.length, drawer: S.ui.drawer, pal: !!S.ui.palette, sub: !!S.ui.subOpen };
